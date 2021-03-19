@@ -1,6 +1,7 @@
 #!/bin/bash
 declare -i count=0
-declare -i i=0
+declare -i i=2
+# Start at two because file 1 is not formatted the same as the rest.
 until [[ count -eq 100 ]]
 do
     text=`curl -f https://www.gutenberg.org/files/${i}/${i}-0.txt`
