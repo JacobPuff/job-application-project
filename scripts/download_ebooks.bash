@@ -1,4 +1,9 @@
-for i in {0..100}
+#!/bin/bash
+for i in {0..155}
 do
-    `curl https://www.gutenberg.org/files/${i}/${i}-0.txt --output ${i}.txt`
+    text=`curl -f https://www.gutenberg.org/files/${i}/${i}-0.txt`
+    if [[ $? -eq 0 ]]
+    then
+        echo $text > "${i}.txt"
+    fi
 done
