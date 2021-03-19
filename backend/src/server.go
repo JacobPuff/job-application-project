@@ -20,7 +20,7 @@ func main() {
 	frontendServer := http.FileServer(http.Dir(appconfig.FrontendDir))
 	http.Handle("/", frontendServer)
 	fileServer := http.FileServer(http.Dir(appconfig.StorageFilesDir))
-	http.Handle("/files", fileServer)
+	http.Handle("/files/", http.StripPrefix("/files",fileServer))
 
 	fmt.Println("Running on port " + appconfig.ServerPort)
 	log.Fatal(httpServer.ListenAndServe())
