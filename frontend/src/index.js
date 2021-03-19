@@ -1,6 +1,11 @@
-const app = <div>Hello world</div>;
+
+function App() {
+    return (
+        <div class="stylish">Hello WORLD</div>
+    );
+}
 
 ReactDOM.render(
-    app,
+    <App />,
     document.getElementById('root')
 )
