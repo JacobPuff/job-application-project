@@ -7,7 +7,7 @@
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "author": "jacob@todandlorna.com",
-  "license": "ISC",
+  "license": "GNU GENERAL PUBLIC LICENSE v3.0",
   "dependencies": {
     "@material-ui/core": "^4.11.3"
   }
