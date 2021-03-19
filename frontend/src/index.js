@@ -1,7 +1,8 @@
-
 function App() {
     return (
-        <div class="stylish">Hello WORLD</div>
+        <div class="app border border-primary">
+            <h4 class="title border-bottom border-3 border-primary">Hello World</h4>
+        </div>
     );
 }
 

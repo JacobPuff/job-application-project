@@ -1,4 +1,19 @@
-.stylish {
-    margin: 100px;
-    background-color: rgb(194, 194, 194);
+.app {
+    margin: auto;
+    margin-top: 50px;
+    width: 90%;
+    color: rgb(31, 30, 44);
+    max-height:90%;
+    padding: 10px;
+    background-color: rgb(243, 247, 255);
+    border-radius: 10px;
+}
+
+.title {
+    padding-left: 25px;
+    padding-bottom: 5px;
+}
+
+body {
+    background-color: rgb(91 111 150)
 }
