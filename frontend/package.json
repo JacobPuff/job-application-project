@@ -1,0 +1,14 @@
+{
+  "name": "job-application-project",
+  "version": "1.0.0",
+  "description": "For an application.",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "jacob@todandlorna.com",
+  "license": "ISC",
+  "dependencies": {
+    "@material-ui/core": "^4.11.3"
+  }
+}
