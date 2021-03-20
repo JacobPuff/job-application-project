@@ -8,6 +8,7 @@ import (
 	"strings"
 	"strconv"
 	"os"
+	"io/fs"
 	"encoding/json"
 	"regexp"
 	appconfig "jacob.squizzlezig.com/jobapplicationproject/appconfig"
@@ -60,7 +61,7 @@ func (apiHandler *ApiHandler) HandleAPI(writer http.ResponseWriter, request *htt
 			reportPath := fmt.Sprintf("%s/%s.txt", appconfig.StorageFilesDir, report)
 			fileBytes, err := GetBytesOfFile(reportPath)
 			if err != nil {
-				if strings.Contains(err.Error(), "The system cannot find the file specified.") {
+				if _, ok := err.(*fs.PathError); ok {
 					writer.WriteHeader(http.StatusNotFound)
 					return
 				}
