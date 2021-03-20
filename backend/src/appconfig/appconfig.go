@@ -3,9 +3,11 @@ package appconfig
 import "os"
 
 var ServerPort = getEnvOrDefault("SERVER_PORT", "9090")
-var BaseAppDir = getEnvOrDefault("BASE_APP_DIR", "/mnt/c/Users/Jacob/Desktop/Random code stuffs/For Segmed")
+var BaseAppDir = getEnvOrDefault("BASE_APP_DIR", "/app")
 var FrontendDir = getEnvOrDefault("FRONTEND_DIR",BaseAppDir+"/frontend/src")
-var StorageFilesDir = getEnvOrDefault("STORAGE_FILES_DIR",BaseAppDir+"/storage/files")
+var StorageDir = getEnvOrDefault("STORAGE_DIR",BaseAppDir+"/storage")
+var StorageFilesDir = StorageDir+"/files"
+var StorageUnprocessedFilesDir = StorageDir+"/unprocessed_files"
 
 func getEnvOrDefault(envVar string, defaultValue string) string {
 	value := os.Getenv(envVar)
