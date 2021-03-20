@@ -17,7 +17,6 @@ export function Table(props) {
         axios.get('/api')
         .then((response)=>{
             setData(response.data)
-            setShow(true)
         })
         .catch((error)=>{
             console.log(error)
@@ -38,13 +37,13 @@ export function Table(props) {
 
     return (
         <div>
-        <table className="table">
+        <table className="table" style={{padding:"10px"}}>
             <thead>
                 <tr>
-                    <th scope="col" width="5%">File Num</th>
+                    <th scope="col" width="7%">File Num</th>
                     <th scope="col" width="30%">"Report" Title</th>
-                    <th scope="col" width="30%">Author</th>
-                    <th scope="col" width="35%">Preview</th>
+                    <th scope="col" width="20%">Author</th>
+                    <th scope="col" width="43%">Preview</th>
                 </tr>
             </thead>
             <tbody>

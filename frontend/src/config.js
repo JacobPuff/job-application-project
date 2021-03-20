@@ -1,1 +1,1 @@
-const MAX_PER_PAGE = 50;
+const MAX_PER_PAGE = 10;
