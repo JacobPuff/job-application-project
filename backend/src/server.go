@@ -8,7 +8,7 @@ import (
 	"strings"
 	"strconv"
 	"os"
-	// "encoding/json"
+	"encoding/json"
 	"regexp"
 	appconfig "jacob.squizzlezig.com/jobapplicationproject/appconfig"
 	structs "jacob.squizzlezig.com/jobapplicationproject/structs"
@@ -39,9 +39,17 @@ func main() {
 	log.Fatal(httpServer.ListenAndServe())
 }
 
-func (*ApiHandler) HandleAPI(writer http.ResponseWriter, request *http.Request) {
+func (apiHandler *ApiHandler) HandleAPI(writer http.ResponseWriter, request *http.Request) {
 	if request.Method == "GET" {
-		writer.Write([]byte("Test"))
+		if request.URL.Query()["report"] != nil {
+			//handle individual report
+		} else {
+			bytesMetadata, err := json.Marshal(apiHandler.listOfMetaData)
+			if err != nil {
+				fmt.Println("ERROR: Couldn't marshal metadata: " + err.Error())
+			}
+			writer.Write(bytesMetadata)
+		}
 	}
 }
 
@@ -71,7 +79,7 @@ func GenerateTextFilesAndMetadata() []structs.FileMetaData {
 		newMetaData := structs.FileMetaData{
 			Author: "Unknown",
 			Subtitle: "None",
-			StartingText: string(byteStartingTest),
+			StartingText: strings.TrimSpace(string(byteStartingTest)+"..."),
 		}
 		newMetaData.FileNum, err = strconv.Atoi(file.Name()[0:len(file.Name())-4])
 
