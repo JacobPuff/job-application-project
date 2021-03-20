@@ -60,11 +60,11 @@ func (apiHandler *ApiHandler) HandleAPI(writer http.ResponseWriter, request *htt
 			reportPath := fmt.Sprintf("%s/%s.txt", appconfig.StorageFilesDir, report)
 			fileBytes, err := GetBytesOfFile(reportPath)
 			if err != nil {
-				fmt.Println("ERROR: ", err)
 				if strings.Contains(err.Error(), "The system cannot find the file specified.") {
 					writer.WriteHeader(http.StatusNotFound)
 					return
 				}
+				fmt.Println("ERROR: Something happened when reading a report from a request.", err)
 				writer.WriteHeader(http.StatusInternalServerError)
 				return
 			}
@@ -119,10 +119,10 @@ func GenerateTextFilesAndMetadata() []structs.FileMetaData {
 			}
 			if strings.Contains(line, "Title") {
 				foundTitleIndex = i
-				newMetaData.Title = strings.ReplaceAll(line, "Title: ", "")
+				newMetaData.Title = strings.TrimSpace(strings.ReplaceAll(line, "Title: ", ""))
 			}
 			if strings.Contains(line, "Author") {
-				newMetaData.Author = strings.ReplaceAll(line, "Author: ", "")
+				newMetaData.Author = strings.TrimSpace(strings.ReplaceAll(line, "Author: ", ""))
 			}
 		}
 
