@@ -8,12 +8,19 @@ const axios = require('axios');
 
 export function Table(props) {
     const [data, setData] = useState([])
-    const [numOfPages, setNumOfPages] = useState(1)
-    const [page, setPage] = useState(1)
+    const [numOfPages, setNumOfPages] = useState(-1)
+    const [page, setPage] = useState(-1)
     const [show, setShow] = useState(false)
 
     useEffect(()=> {
         GetTableData()
+        //Internet Explorer doens't support URLSearchParams.
+        var params = new URLSearchParams(window.location.search);
+        if (params.get("page")) {
+            setPage(parseInt(params.get("page"), 10))
+        } else {
+            setPage(1)
+        }
     }, [])
 
     useEffect(()=> {
@@ -47,6 +54,9 @@ export function Table(props) {
         var pagesAvailable = []
         var start = page - RELATIVE_PAGE_RANGE/2
         var end = page + RELATIVE_PAGE_RANGE/2
+        if (page == -1 || numOfPages == -1) {
+            return
+        } 
 
         if (numOfPages-page < RELATIVE_PAGE_RANGE/2) {
             start -= RELATIVE_PAGE_RANGE/2-(numOfPages-page)
@@ -58,7 +68,7 @@ export function Table(props) {
         for (var i=start; i<=end; i++) {
             if (i >= 1 && i <= numOfPages) {
                 pagesAvailable.push(
-                    <li className={`page-item page-secondary ${i==page?"active":""}`}><a className="page-link" href={`?page=${i}`}>{i}</a></li>
+                    <li key={i} className={`page-item page-secondary ${i==page?"active":""}`}><a className="page-link" href={`?page=${i}`}>{i}</a></li>
                 )
             }
         }
