@@ -8,7 +8,7 @@ import (
 	"strings"
 	"strconv"
 	"os"
-	"encoding/json"
+	// "encoding/json"
 	"regexp"
 	appconfig "jacob.squizzlezig.com/jobapplicationproject/appconfig"
 	structs "jacob.squizzlezig.com/jobapplicationproject/structs"
@@ -30,18 +30,18 @@ func main() {
 	http.Handle("/", frontendServer)
 	fileServer := http.FileServer(http.Dir(appconfig.StorageFilesDir))
 	http.Handle("/files/", http.StripPrefix("/files",fileServer))
-	http.Handle("/api", apiHandler.HandleAPI)
 
 	fmt.Println("Generating file metadata")
 	apiHandler := ApiHandler{}
 	apiHandler.listOfMetaData = GenerateTextFilesAndMetadata()
+	http.HandleFunc("/api", apiHandler.HandleAPI)
 	fmt.Println("Running on port " + appconfig.ServerPort)
 	log.Fatal(httpServer.ListenAndServe())
 }
 
-func (*apiHandler) HandleAPI(writer, http.ResponseWriter, request *http.Request) {
+func (*ApiHandler) HandleAPI(writer http.ResponseWriter, request *http.Request) {
 	if request.Method == "GET" {
-		writer.Write("Test")
+		writer.Write([]byte("Test"))
 	}
 }
 
@@ -59,7 +59,6 @@ func GenerateTextFilesAndMetadata() []structs.FileMetaData {
 			continue
 		}
 
-		fmt.Println(file.Name())
 		fileText, err := GetTextOfFile(file.Name())
 		if err != nil {
 			panic(fmt.Sprintf("ERROR: Couldn't get text of file %s: %s\n", file.Name(), err.Error()))
