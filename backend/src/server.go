@@ -39,9 +39,9 @@ func main() {
 	log.Fatal(httpServer.ListenAndServe())
 }
 
-func (*apiHandler) HandleAPI(http.ResponseWriter, *http.Request) {
+func (*apiHandler) HandleAPI(writer, http.ResponseWriter, request *http.Request) {
 	if request.Method == "GET" {
-		return "Test"
+		writer.Write("Test")
 	}
 }
 
@@ -66,7 +66,6 @@ func GenerateTextFilesAndMetadata() []structs.FileMetaData {
 		}
 		
 		splitText := strings.SplitN(fileText, "***", 2)
-		// splitText[0]
 		metaDataSection := strings.Split(splitText[0], "\r")
 		Text := strings.TrimSpace(splitText[1])
 		byteStartingTest := whitespaceRegex.ReplaceAll([]byte(Text[0:100]), []byte(" "))
