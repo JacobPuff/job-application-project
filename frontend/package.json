@@ -3,8 +3,11 @@
   "version": "1.0.0",
   "description": "For an application.",
   "main": "index.js",
+  "private": true,
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "build": "webpack",
+    "dev": "webpack --mode=development"
   },
   "author": "jacob@todandlorna.com",
   "license": "GNU GENERAL PUBLIC LICENSE v3.0",
@@ -12,6 +15,10 @@
     "bootstrap": "^4.6.0"
   },
   "devDependencies": {
+    "@babel/core": "^7.13.10",
+    "@babel/preset-env": "^7.13.10",
+    "@babel/preset-react": "^7.12.13",
+    "babel-loader": "^8.2.2",
     "webpack": "^5.27.0",
     "webpack-cli": "^4.5.0"
   }
