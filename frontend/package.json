@@ -12,7 +12,11 @@
   "author": "jacob@todandlorna.com",
   "license": "GNU GENERAL PUBLIC LICENSE v3.0",
   "dependencies": {
-    "bootstrap": "^4.6.0"
+    "axios": "^0.21.1",
+    "babel": "^6.23.0",
+    "bootstrap": "^4.6.0",
+    "react": "^17.0.1",
+    "react-dom": "^17.0.1"
   },
   "devDependencies": {
     "@babel/core": "^7.13.10",

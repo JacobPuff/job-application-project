@@ -15,5 +15,7 @@
 }
 
 body {
+    min-width: 100%;
+    min-height: 100%;
     background-color: rgb(91 111 150)
 }
