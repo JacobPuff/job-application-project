@@ -29,7 +29,7 @@ func main() {
 	}
 	frontendServer := http.FileServer(http.Dir(appconfig.FrontendDir))
 	http.Handle("/", frontendServer)
-	
+
 	frontendDistServer := http.FileServer(http.Dir(appconfig.FrontendDistDir))
 	http.Handle("/dist/", http.StripPrefix("/dist",frontendDistServer))
 
@@ -46,6 +46,8 @@ func main() {
 
 var reportError = []byte("Report must be a number >= 0")
 func (apiHandler *ApiHandler) HandleAPI(writer http.ResponseWriter, request *http.Request) {
+	// DEV
+	fmt.Println(request.Method, request.URL)
 	if request.Method == "GET" {
 		if request.URL.Query()["report"] != nil {
 			report := request.URL.Query().Get("report")
@@ -112,14 +114,13 @@ func GenerateTextFilesAndMetadata() []structs.FileMetaData {
 		byteStartingTest := whitespaceRegex.ReplaceAll([]byte(Text[0:100]), []byte(" "))
 		newMetaData := structs.FileMetaData{
 			Author: "Unknown",
-			Subtitle: "None",
 			StartingText: strings.TrimSpace(string(byteStartingTest)+"..."),
 		}
 		newMetaData.FileNum, err = strconv.Atoi(file.Name()[0:len(file.Name())-4])
 
 		foundTitleIndex := -1
 		for i, line := range metaDataSection {
-			if foundTitleIndex != -1 && foundTitleIndex+1 == i && line != "" {
+			if foundTitleIndex != -1 && foundTitleIndex+1 == i && line != "" && !strings.Contains(line, "Author") {
 				newMetaData.Subtitle = line
 			}
 			if strings.Contains(line, "Title") {
