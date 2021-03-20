@@ -39,16 +39,35 @@ func main() {
 	log.Fatal(httpServer.ListenAndServe())
 }
 
+var reportError = []byte("Report must be a number >= 0")
 func (apiHandler *ApiHandler) HandleAPI(writer http.ResponseWriter, request *http.Request) {
 	if request.Method == "GET" {
 		if request.URL.Query()["report"] != nil {
+			report := request.URL.Query().Get("report")
+			numReport, err := strconv.Atoi(report)
+			if err != nil {
+				writer.WriteHeader(http.StatusBadRequest)
+				writer.Write(reportError)
+				return
+			}
+			if numReport < 0 {
+				writer.WriteHeader(http.StatusBadRequest)
+				writer.Write(reportError)
+				return
+			}
+			
 			//handle individual report
+			reportPath := fmt.Sprintf("%s/%s.txt", appconfig.StorageFilesDir, report)
+			fileBytes, err := GetBytesOfFile(reportPath)
+			writer.Write(fileBytes)
+			return
 		} else {
 			bytesMetadata, err := json.Marshal(apiHandler.listOfMetaData)
 			if err != nil {
 				fmt.Println("ERROR: Couldn't marshal metadata: " + err.Error())
 			}
 			writer.Write(bytesMetadata)
+			return
 		}
 	}
 }
@@ -67,10 +86,11 @@ func GenerateTextFilesAndMetadata() []structs.FileMetaData {
 			continue
 		}
 
-		fileText, err := GetTextOfFile(file.Name())
+		fileBytes, err := GetBytesOfFile(appconfig.StorageUnprocessedFilesDir+"/"+file.Name())
 		if err != nil {
 			panic(fmt.Sprintf("ERROR: Couldn't get text of file %s: %s\n", file.Name(), err.Error()))
 		}
+		fileText := string(fileBytes)
 		
 		splitText := strings.SplitN(fileText, "***", 2)
 		metaDataSection := strings.Split(splitText[0], "\r")
@@ -105,10 +125,10 @@ func GenerateTextFilesAndMetadata() []structs.FileMetaData {
 }
 
 
-func GetTextOfFile(name string) (string, error) {
-	text, err := os.ReadFile(appconfig.StorageUnprocessedFilesDir+"/"+name)
+func GetBytesOfFile(path string) ([]byte, error) {
+	bytes, err := os.ReadFile(path)
 	if err != nil {
-		return "", err
+		return []byte{}, err
 	}
-	return string(text), nil
+	return bytes, nil
 }
