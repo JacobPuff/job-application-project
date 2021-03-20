@@ -8,6 +8,8 @@ import (
 	"strings"
 	"strconv"
 	"os"
+	"os/signal"
+	"syscall"
 	"io/fs"
 	"encoding/json"
 	"regexp"
@@ -20,6 +22,8 @@ type ApiHandler struct {
 }
 
 func main() {
+	sigs := make(chan os.Signal, 1)
+	go CheckForSigs(sigs)
 	httpServer := http.Server{
 		Addr:              ":" + appconfig.ServerPort,
 		ReadTimeout:       1 * time.Second,
@@ -146,4 +150,10 @@ func GetBytesOfFile(path string) ([]byte, error) {
 		return []byte{}, err
 	}
 	return bytes, nil
+}
+
+func CheckForSigs(sigs chan os.Signal) {
+	signal.Notify(sigs, syscall.SIGINT, syscall.SIGTERM)
+	sig := <-sigs
+	log.Fatal(fmt.Sprintf("Received %v.",sig))
 }
