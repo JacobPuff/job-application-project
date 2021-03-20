@@ -59,6 +59,15 @@ func (apiHandler *ApiHandler) HandleAPI(writer http.ResponseWriter, request *htt
 			//handle individual report
 			reportPath := fmt.Sprintf("%s/%s.txt", appconfig.StorageFilesDir, report)
 			fileBytes, err := GetBytesOfFile(reportPath)
+			if err != nil {
+				fmt.Println("ERROR: ", err)
+				if strings.Contains(err.Error(), "The system cannot find the file specified.") {
+					writer.WriteHeader(http.StatusNotFound)
+					return
+				}
+				writer.WriteHeader(http.StatusInternalServerError)
+				return
+			}
 			writer.Write(fileBytes)
 			return
 		} else {
