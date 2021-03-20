@@ -4,7 +4,7 @@ COPY ./frontend/src ./frontend/src
 COPY ./frontend/package.json ./frontend/package.json
 RUN npm install
 
-FROM golang:1.15.1-buster
+FROM golang:1.16.2-buster
 ENV SERVER_PORT=9090
 ENV BASE_APP_DIR="/app"
 WORKDIR /app

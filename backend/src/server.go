@@ -5,11 +5,20 @@ import (
 	"fmt"
 	"time"
 	"log"
+	"strings"
+	"strconv"
+	"os"
+	"encoding/json"
+	"regexp"
 	appconfig "jacob.squizzlezig.com/jobapplicationproject/appconfig"
+	structs "jacob.squizzlezig.com/jobapplicationproject/structs"
 )
 
-func main() {
+type ApiHandler struct {
+	listOfMetaData []structs.FileMetaData
+}
 
+func main() {
 	httpServer := http.Server{
 		Addr:              ":" + appconfig.ServerPort,
 		ReadTimeout:       1 * time.Second,
@@ -21,7 +30,79 @@ func main() {
 	http.Handle("/", frontendServer)
 	fileServer := http.FileServer(http.Dir(appconfig.StorageFilesDir))
 	http.Handle("/files/", http.StripPrefix("/files",fileServer))
+	http.Handle("/api", apiHandler.HandleAPI)
 
+	fmt.Println("Generating file metadata")
+	apiHandler := ApiHandler{}
+	apiHandler.listOfMetaData = GenerateTextFilesAndMetadata()
 	fmt.Println("Running on port " + appconfig.ServerPort)
 	log.Fatal(httpServer.ListenAndServe())
+}
+
+func (*apiHandler) HandleAPI(http.ResponseWriter, *http.Request) {
+	if request.Method == "GET" {
+		return "Test"
+	}
+}
+
+func GenerateTextFilesAndMetadata() []structs.FileMetaData {
+	whitespaceRegex := regexp.MustCompile(`\s+`)
+	fileInfo, err := os.ReadDir(appconfig.StorageUnprocessedFilesDir);
+	if err != nil {
+		panic("ERROR: Couldn't read storage files directory: " + err.Error())
+	}
+	listOfMetaData := []structs.FileMetaData{}
+
+	for _, file := range fileInfo {
+		// This should never happen, but just in case this is here.
+		if file.IsDir() {
+			continue
+		}
+
+		fmt.Println(file.Name())
+		fileText, err := GetTextOfFile(file.Name())
+		if err != nil {
+			panic(fmt.Sprintf("ERROR: Couldn't get text of file %s: %s\n", file.Name(), err.Error()))
+		}
+		
+		splitText := strings.SplitN(fileText, "***", 2)
+		// splitText[0]
+		metaDataSection := strings.Split(splitText[0], "\r")
+		Text := strings.TrimSpace(splitText[1])
+		byteStartingTest := whitespaceRegex.ReplaceAll([]byte(Text[0:100]), []byte(" "))
+		newMetaData := structs.FileMetaData{
+			Author: "Unknown",
+			Subtitle: "None",
+			StartingText: string(byteStartingTest),
+		}
+		newMetaData.FileNum, err = strconv.Atoi(file.Name()[0:len(file.Name())-4])
+
+		foundTitleIndex := -1
+		for i, line := range metaDataSection {
+			if foundTitleIndex != -1 && foundTitleIndex+1 == i && line != "" {
+				newMetaData.Subtitle = line
+			}
+			if strings.Contains(line, "Title") {
+				foundTitleIndex = i
+				newMetaData.Title = strings.ReplaceAll(line, "Title: ", "")
+			}
+			if strings.Contains(line, "Author") {
+				newMetaData.Author = strings.ReplaceAll(line, "Author: ", "")
+			}
+		}
+
+		listOfMetaData = append(listOfMetaData, newMetaData)
+		os.WriteFile(appconfig.StorageFilesDir+"/"+file.Name(), []byte(Text), 0666)
+	}
+
+	return listOfMetaData
+}
+
+
+func GetTextOfFile(name string) (string, error) {
+	text, err := os.ReadFile(appconfig.StorageUnprocessedFilesDir+"/"+name)
+	if err != nil {
+		return "", err
+	}
+	return string(text), nil
 }
