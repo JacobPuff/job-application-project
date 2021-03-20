@@ -2,14 +2,16 @@ function FormatTextFiles() {
 
 }
 
-function Table() {
+export default function Table() {
     return (
-        <table class="table">
+        <table className="table">
             <thead>
-                <th scope="col">File Num</th>
-                <th scope="col">"Report" Title</th>
-                <th scope="col">Author</th>
-                <th scope="col">{/*Text*/}</th>
+                <tr>
+                    <th scope="col">File Num</th>
+                    <th scope="col">"Report" Title</th>
+                    <th scope="col">Author</th>
+                    <th scope="col">Preview</th>
+                </tr>
             </thead>
         </table>
     )

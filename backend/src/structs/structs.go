@@ -8,7 +8,7 @@ type FileMetaData struct {
 	StartingText string `json:"startingText"`
 }
 
-type FileTagData {
+type FileTagData struct {
 	FileNum int `json:"fileNum"`
 	Tags []string `json:"tags"`
 }

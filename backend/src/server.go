@@ -29,6 +29,10 @@ func main() {
 	}
 	frontendServer := http.FileServer(http.Dir(appconfig.FrontendDir))
 	http.Handle("/", frontendServer)
+	
+	frontendDistServer := http.FileServer(http.Dir(appconfig.FrontendDistDir))
+	http.Handle("/dist/", http.StripPrefix("/dist",frontendDistServer))
+
 	fileServer := http.FileServer(http.Dir(appconfig.StorageFilesDir))
 	http.Handle("/files/", http.StripPrefix("/files",fileServer))
 
