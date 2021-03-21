@@ -143,7 +143,7 @@ func SearchFiles(query string, listOfMetaData []structs.FileMetaData) (structs.S
 	// implementing a fully featured search would take a lot of time.
 	whitespaceRegex := regexp.MustCompile(`\s+`)
 	results := structs.SearchResults{Query: query, Results: []structs.FileMetaData{}}
-	fileInfo, err := os.ReadDir(appconfig.StorageUnprocessedFilesDir);
+	fileInfo, err := os.ReadDir(appconfig.StorageFilesDir);
 	if err != nil {
 		return results, fmt.Errorf("ERROR: Couldn't read files directory: " + err.Error())
 	}
@@ -151,7 +151,7 @@ func SearchFiles(query string, listOfMetaData []structs.FileMetaData) (structs.S
 	startTime := time.Now().UTC()
 	for _, file := range fileInfo {
 		containsQuery := false
-		fileBytes, err := GetBytesOfFile(appconfig.StorageUnprocessedFilesDir+"/"+file.Name())
+		fileBytes, err := GetBytesOfFile(appconfig.StorageFilesDir+"/"+file.Name())
 		if err != nil {
 			return results, fmt.Errorf("ERROR: Couldn't get text of file %s: %s\n", file.Name(), err.Error())
 		}
