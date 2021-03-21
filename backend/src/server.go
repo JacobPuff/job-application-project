@@ -92,6 +92,14 @@ func (apiHandler *ApiHandler) HandleAPI(writer http.ResponseWriter, request *htt
 	}
 }
 
+func (apiHandler *ApiHandler) HandleAPITags(writer http.ResponseWriter, request *http.Request) {
+	return
+}
+
+func SearchFiles() {
+	
+}
+
 func GenerateTextFilesAndMetadata() []structs.FileMetaData {
 	whitespaceRegex := regexp.MustCompile(`\s+`)
 	fileInfo, err := os.ReadDir(appconfig.StorageUnprocessedFilesDir);
@@ -118,7 +126,7 @@ func GenerateTextFilesAndMetadata() []structs.FileMetaData {
 		byteStartingTest := whitespaceRegex.ReplaceAll([]byte(Text[0:100]), []byte(" "))
 		newMetaData := structs.FileMetaData{
 			Author: "Unknown",
-			StartingText: strings.TrimSpace(string(byteStartingTest)+"..."),
+			Preview: strings.TrimSpace(string(byteStartingTest)+"..."),
 		}
 		newMetaData.FileNum, err = strconv.Atoi(file.Name()[0:len(file.Name())-4])
 

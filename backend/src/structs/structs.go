@@ -5,10 +5,19 @@ type FileMetaData struct {
 	Title string `json:"title"`
 	Subtitle string `json:"subtitle"`
 	Author string `json:"author"`
-	StartingText string `json:"startingText"`
+	Preview string `json:"preview"`
 }
 
 type FileTagData struct {
 	FileNum int `json:"fileNum"`
 	Tags []string `json:"tags"`
+}
+
+type SearchQuery struct {
+	Query string `json:"query"`
+}
+
+type SearchResults struct {
+	Query string `json:"query"`
+	Results []FileMetaData `json:"results"`
 }

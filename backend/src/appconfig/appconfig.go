@@ -9,6 +9,7 @@ var FrontendDistDir = getEnvOrDefault("FRONTEND_DIST_DIR",BaseAppDir+"/frontend/
 var StorageDir = getEnvOrDefault("STORAGE_DIR",BaseAppDir+"/storage")
 var StorageFilesDir = StorageDir+"/files"
 var StorageUnprocessedFilesDir = StorageDir+"/unprocessed_files"
+var StorageDataFilesDir = StorageDir+"/data_storage_files"
 
 func getEnvOrDefault(envVar string, defaultValue string) string {
 	value := os.Getenv(envVar)
