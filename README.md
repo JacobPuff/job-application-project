@@ -37,3 +37,5 @@ Run `npm run dev` in `/frontend`
 Run `go run server.go` in `/backend/src`
 
 Then go to `localhost:9090` in your browser.
+
+If you want more files, you can change `count -eq 100` to not `100` in `download_ebooks.bash`. Just make sure to run it in the `/storage/unprocessed_files` directory.
