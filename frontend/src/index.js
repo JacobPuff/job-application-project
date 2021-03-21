@@ -46,7 +46,6 @@ function App() {
         }
         //Internet Explorer doens't support URLSearchParams.
         var params = new URLSearchParams(window.location.search);
-        var pageNum = 1
         var tempShowReport = false
         if (params.get("report")) {
             var reportMetadata = tempInitialData.filter(d=>d.fileNum == params.get("report"))
@@ -61,6 +60,7 @@ function App() {
             setShowReport(true)
             tempShowReport=true
         }
+        var pageNum = 1
         if (params.get("page")) {
             pageNum = parseInt(params.get("page"), 10)
         }
@@ -115,7 +115,8 @@ function App() {
             </div>
             <Table InitialData={initialData} InitialPageNum={selectedPage} IsVisible={showTable} SelectReport={SelectReport}/>
             <Report IsVisible={showReport} ReportMetadata={selectedReportMetadata} BackToTable={BackToTable}/>
-            <AlertSnackbar Text="An error occured when getting the table data. Please try again later." AlertType="danger" Show={showAlert}/>
+            <AlertSnackbar Text="An error occured when getting the table data. Please try again later." AlertType="danger" Show={showAlert}
+                HandleClose={()=>{setShowAlert(false)}}/>
         </div>
     );
 }

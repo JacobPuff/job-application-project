@@ -50,6 +50,7 @@ export function Report(props) {
             </div>
             <div style={{width:"70px", height:"70px", display:"inline-block", verticalAlign:"top", margin:"10px"}}>Tags will go here</div>
         </div>
-        <AlertSnackbar Text="An error occured when getting the report. Please try again later." AlertType="danger" Show={showAlert}/>
+        <AlertSnackbar Text="An error occured when getting the report. Please try again later." AlertType="danger" Show={showAlert}
+            HandleClose={()=>{setShowAlert(false)}}/>
     </div>
 }

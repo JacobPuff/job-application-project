@@ -32,6 +32,8 @@ I've used it before and so learning it again would take less time.
 ### How to run (Dev)
 Set the `BASE_APP_DIR` to the repos directory (Or change the default value in appconfig)
 
+Run `npm install` in `/frontend`
+
 Run `npm run dev` in `/frontend`
 
 Run `go run server.go` in `/backend/src`
