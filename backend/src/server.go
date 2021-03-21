@@ -171,6 +171,9 @@ func SearchFiles(query string, listOfMetaData []structs.FileMetaData) (structs.S
 		newMetaData.Author = existingMetaData.Author
 		newMetaData.Preview = existingMetaData.Preview
 
+		if strings.Contains(string(newMetaData.FileNum), query) {
+			containsQuery = true
+		}
 		if strings.Contains(newMetaData.Title, query) {
 			containsQuery = true
 		}
