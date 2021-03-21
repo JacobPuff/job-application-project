@@ -145,6 +145,8 @@ func SearchFiles(query string, listOfMetaData []structs.FileMetaData) (structs.S
 	if err != nil {
 		return results, fmt.Errorf("ERROR: Couldn't read files directory: " + err.Error())
 	}
+
+	startTime := time.Now().UTC()
 	for _, file := range fileInfo {
 		containsQuery := false
 		fileBytes, err := GetBytesOfFile(appconfig.StorageUnprocessedFilesDir+"/"+file.Name())
@@ -205,6 +207,7 @@ func SearchFiles(query string, listOfMetaData []structs.FileMetaData) (structs.S
 		}
 	}
 	
+	fmt.Println("Query: Got", len(results.Results), "results in", time.Now().UTC().Sub(startTime))
 	return results, nil
 }
 
