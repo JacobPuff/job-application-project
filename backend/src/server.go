@@ -150,6 +150,9 @@ func SearchFiles(query string, listOfMetaData []structs.FileMetaData) (structs.S
 
 	startTime := time.Now().UTC()
 	for _, file := range fileInfo {
+		if !strings.HasSuffix(file.Name(), ".txt") {
+			continue
+		}
 		containsQuery := false
 		fileBytes, err := GetBytesOfFile(appconfig.StorageFilesDir+"/"+file.Name())
 		if err != nil {
