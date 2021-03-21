@@ -4,13 +4,11 @@ import { DEFAULT_MAX_PER_PAGE, RELATIVE_PAGE_RANGE } from '../config';
 
 const axios = require('axios');
 
-
-
 export function Table(props) {
     const [data, setData] = useState([])
     const [numOfPages, setNumOfPages] = useState(-1)
     const [page, setPage] = useState(-1)
-    const [show, setShow] = useState(false)
+    const [showAlert, setShowAlert] = useState(false)
     const [sortCollumn, setSortCollumn] = useState("fileNum")
     const [sortDir, setSortDir] = useState("down")
 
@@ -44,19 +42,23 @@ export function Table(props) {
         })
         .catch((error)=>{
             console.log(error)
-            setShow(true)
+            setShowAlert(true)
         })
+    }
+
+    const SelectReport = (reportMetadata) => {
+        props.SelectReport(reportMetadata)
     }
 
     const GenerateTableRows = () => {
         var start = (page-1)*DEFAULT_MAX_PER_PAGE
         var end = start+DEFAULT_MAX_PER_PAGE
         return data.slice(start,end).map(d=>
-            <tr key={d.fileNum}>
+            <tr key={d.fileNum} onClick={()=>{SelectReport(d)}}>
                 <th scope="row">{d.fileNum}</th>
                 <td>{d.title}<p className="text-muted">{d.subtitle}</p></td>
                 <td>{d.author}</td>
-                <td>{d.startingText}</td>
+                <td>{d.preview}</td>
                 {/* <TagDropdown Tags={d.tags}/> */}
             </tr>)
     }
@@ -153,7 +155,7 @@ export function Table(props) {
     }
 
     return (
-        <div id="appTable">
+        <div style={{display: props.IsVisible?"":"none"}}>
             <table className="table table-hover table-striped" style={{padding:"10px"}}>
                 <thead>
                     <tr>
@@ -195,7 +197,7 @@ export function Table(props) {
                     </li>
                 </ul>
             </nav>
-            <AlertSnackbar Text="An error occured when getting the table data" AlertType="danger" Show={show}/>
+            <AlertSnackbar Text="An error occured when getting the table data. Please try again later." AlertType="danger" Show={showAlert}/>
         </div>
     )
 }
