@@ -40,7 +40,6 @@ function App() {
     }
 
     const HandleHistory = (e) => {
-        // For some reason InitialData is not set when moving between pages. I set st
         var tempInitialData = initialData
         if (e != undefined) {
             tempInitialData = e.state.data
@@ -95,8 +94,17 @@ function App() {
     }
     
     const DoSearch = (query) => {
-        console.log("FOUND", query)
-        return
+        if (query != "") {
+            axios.post('/api',{"query":query})
+            .then((response)=>{
+                setInitialData(response.data.results)
+                setShowAlert(false)
+            })
+            .catch((error)=>{
+                console.log(error)
+                setShowAlert(true)
+            })
+        }
     }
 
     return (

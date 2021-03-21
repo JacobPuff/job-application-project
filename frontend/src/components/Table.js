@@ -2,7 +2,13 @@ import React, {useState, useEffect} from 'react';
 import { DEFAULT_MAX_PER_PAGE, RELATIVE_PAGE_RANGE } from '../config';
 
 export function Table(props) {
-    const [data, setData] = useState(props.InitialData?props.InitialData:[])
+    const EMPTY_PAGE = <tr key={-1}>
+        <th scope="row">Not Found</th>
+        <td>There doesn't seem to be anything here.</td>
+        <td>Please try again later.</td>
+        <td></td>
+    </tr>
+    const [data, setData] = useState(props.InitialData!=[]?props.InitialData:[])
     const [numOfPages, setNumOfPages] = useState(-1)
     const [page, setPage] = useState(-1)
     const [sortCollumn, setSortCollumn] = useState("fileNum")
@@ -31,6 +37,9 @@ export function Table(props) {
     const GenerateTableRows = () => {
         var start = (page-1)*DEFAULT_MAX_PER_PAGE
         var end = start+DEFAULT_MAX_PER_PAGE
+        if (data.length == 0) {
+            return EMPTY_PAGE
+        }
         return data.slice(start,end).map(d=>
             <tr key={d.fileNum} onClick={()=>{SelectReport(d)}}>
                 <th scope="row">{d.fileNum}</th>
