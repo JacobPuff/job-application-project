@@ -22,6 +22,14 @@ export function Table(props) {
         //Internet Explorer doens't support URLSearchParams.
         var params = new URLSearchParams(window.location.search);
         var pageNum = 1
+        if (params.get("report")) {
+            var reportMetadata = data.filter(d=>d.fileNum == params.get("report"))
+            if (reportMetadata[0]) {
+                SelectReport(reportMetadata[0])
+            } else {
+                SelectReport({"fileNum": params.get("report"), "title": "Unknown"})
+            }
+        }
         if (params.get("page")) {
             pageNum = parseInt(params.get("page"), 10)
         }
@@ -29,7 +37,7 @@ export function Table(props) {
             window.location = "/"
         }
         setPage(pageNum)
-    }, [data])
+    }, [data, props])
 
     useEffect(()=>{
         SortTableAndSetData(data)
@@ -47,7 +55,7 @@ export function Table(props) {
     }
 
     const SelectReport = (reportMetadata) => {
-        props.SelectReport(reportMetadata)
+        props.SelectReport(reportMetadata, page)
     }
 
     const GenerateTableRows = () => {
