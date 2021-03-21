@@ -2,6 +2,7 @@ import React, {useEffect, useState} from 'react';
 import ReactDOM from 'react-dom';
 import {Table} from './components/Table';
 import {Report} from './components/Report';
+import {SearchBar} from './components/SearchBar';
 import { AlertSnackbar } from './components/Alert';
 import {DEFAULT_APP_TITLE} from './config';
 
@@ -22,9 +23,7 @@ function App() {
     }, [])
 
     useEffect(()=>{
-        if (initialData == []) {
-            HandleHistory()
-        }
+        HandleHistory()
     },[initialData])
 
     const GetTableData = () => {
@@ -94,10 +93,18 @@ function App() {
         setShowTable(true)
         setShowReport(false)
     }
+    
+    const DoSearch = (query) => {
+        console.log("FOUND", query)
+        return
+    }
 
     return (
         <div className="app border border-primary">
-            <h4 className="title border-bottom border-3 border-primary">{title}{/*<SearchBar/>*/}</h4>
+            <div className="title border-bottom border-3 border-primary">
+                <h4 style={{display:"inline-block", width:"70%"}}>{title}</h4>
+                <SearchBar style={{width:"30%", marginLeft:"auto", display:"inline-block"}} DoSearch={DoSearch}/>
+            </div>
             <Table InitialData={initialData} InitialPageNum={selectedPage} IsVisible={showTable} SelectReport={SelectReport}/>
             <Report IsVisible={showReport} ReportMetadata={selectedReportMetadata} BackToTable={BackToTable}/>
             <AlertSnackbar Text="An error occured when getting the table data. Please try again later." AlertType="danger" Show={showAlert}/>

@@ -42,7 +42,7 @@ export function Report(props) {
 
     return <div style={{display:props.IsVisible?"":"none"}}>
         <div>
-            <div style={{width:"70%", marginTop: "-10px", padding:"50px", display:"inline-block"}} className="border-end border-3 border-primary">
+            <div style={{width:"70%", padding:"50px", display:"inline-block"}} className="border-end border-3 border-primary">
                 <button type="button" className="btn btn-primary" onClick={BackToTable}>Back</button>
                 <pre style={{padding: "10px", wordWrap:"break-word", textAlign:"center", whiteSpace:"pre-wrap"}}>
                     {reportText}
