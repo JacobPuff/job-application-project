@@ -11,26 +11,36 @@ export function Table(props) {
     const [numOfPages, setNumOfPages] = useState(-1)
     const [page, setPage] = useState(-1)
     const [show, setShow] = useState(false)
+    const [sortCollumn, setSortCollumn] = useState("fileNum")
+    const [sortDir, setSortDir] = useState("down")
 
     useEffect(()=> {
         GetTableData()
-        //Internet Explorer doens't support URLSearchParams.
-        var params = new URLSearchParams(window.location.search);
-        if (params.get("page")) {
-            setPage(parseInt(params.get("page"), 10))
-        } else {
-            setPage(1)
-        }
     }, [])
 
     useEffect(()=> {
-        setNumOfPages(Math.ceil(data.length/DEFAULT_MAX_PER_PAGE))
+        var tempNumOfPages = Math.ceil(data.length/DEFAULT_MAX_PER_PAGE)
+        setNumOfPages(tempNumOfPages)
+        //Internet Explorer doens't support URLSearchParams.
+        var params = new URLSearchParams(window.location.search);
+        var pageNum = 1
+        if (params.get("page")) {
+            pageNum = parseInt(params.get("page"), 10)
+        }
+        if (pageNum < 1 || (tempNumOfPages > 0 && pageNum > tempNumOfPages)) {
+            window.location = "/"
+        }
+        setPage(pageNum)
     }, [data])
+
+    useEffect(()=>{
+        SortTableAndSetData(data)
+    }, [sortDir, sortCollumn])
 
     const GetTableData = () => {
         axios.get('/api')
         .then((response)=>{
-            setData(response.data)
+            SortTableAndSetData(response.data)
         })
         .catch((error)=>{
             console.log(error)
@@ -47,6 +57,7 @@ export function Table(props) {
                 <td>{d.title}<p className="text-muted">{d.subtitle}</p></td>
                 <td>{d.author}</td>
                 <td>{d.startingText}</td>
+                {/* <TagDropdown Tags={d.tags}/> */}
             </tr>)
     }
 9 
@@ -54,9 +65,6 @@ export function Table(props) {
         var pagesAvailable = []
         var start = page - RELATIVE_PAGE_RANGE/2
         var end = page + RELATIVE_PAGE_RANGE/2
-        if (page == -1 || numOfPages == -1) {
-            return
-        } 
 
         if (numOfPages-page < RELATIVE_PAGE_RANGE/2) {
             start -= RELATIVE_PAGE_RANGE/2-(numOfPages-page)
@@ -65,36 +73,126 @@ export function Table(props) {
             end += RELATIVE_PAGE_RANGE/2-(page-1)
         }
 
+        // TODO: Make a component for easy duplication at the top of the page
         for (var i=start; i<=end; i++) {
             if (i >= 1 && i <= numOfPages) {
                 pagesAvailable.push(
-                    <li key={i} className={`page-item page-secondary ${i==page?"active":""}`}><a className="page-link" href={`?page=${i}`}>{i}</a></li>
+                    <li key={i} onClick={HandlePageSelection} className={`page-item page-secondary ${i==page?"active":""}`}>
+                        <a className="page-link" pagenum={i}>{i}</a>
+                    </li>
                 )
             }
         }
         return pagesAvailable
     }
+    const HandlePageSelection = (e) => {
+        var pageNum = parseInt(e.target.attributes.pagenum.value, 10)
+        history.pushState({}, '', window.location.origin+"/?page="+pageNum)
+        setPage(pageNum)
+    }
+
+    const GetSortIcon = (col) => {
+        if (col == sortCollumn) {
+            if (sortDir == "up") {
+                //https://icons.getbootstrap.com/icons/arrow-up/
+                return (
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" className="bi bi-arrow-up" viewBox="0 0 16 16">
+                        <path fillRule="evenodd" d="M8 15a.5.5 0 0 0 .5-.5V2.707l3.146 3.147a.5.5 0 0 0 .708-.708l-4-4a.5.5 0 0 0-.708 0l-4 4a.5.5 0 1 0 .708.708L7.5 2.707V14.5a.5.5 0 0 0 .5.5z"/>
+                    </svg>
+                )
+            } else {
+                //https://icons.getbootstrap.com/icons/arrow-down/
+                return (
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" className="bi bi-arrow-down" viewBox="0 0 16 16">
+                        <path fillRule="evenodd" d="M8 1a.5.5 0 0 1 .5.5v11.793l3.146-3.147a.5.5 0 0 1 .708.708l-4 4a.5.5 0 0 1-.708 0l-4-4a.5.5 0 0 1 .708-.708L7.5 13.293V1.5A.5.5 0 0 1 8 1z"/>
+                    </svg>
+                )
+            }
+        }
+        // https://icons.getbootstrap.com/icons/arrow-down-up/
+        return (
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" className="bi bi-arrow-down-up" viewBox="0 0 16 16">
+                <path fillRule="evenodd" d="M11.5 15a.5.5 0 0 0 .5-.5V2.707l3.146 3.147a.5.5 0 0 0 .708-.708l-4-4a.5.5 0 0 0-.708 0l-4 4a.5.5 0 1 0 .708.708L11 2.707V14.5a.5.5 0 0 0 .5.5zm-7-14a.5.5 0 0 1 .5.5v11.793l3.146-3.147a.5.5 0 0 1 .708.708l-4 4a.5.5 0 0 1-.708 0l-4-4a.5.5 0 0 1 .708-.708L4 13.293V1.5a.5.5 0 0 1 .5-.5z"/>
+            </svg>
+        )
+    }
+
+    const HandleSetSort = (col) => {
+        if (col == sortCollumn) {
+            if (sortDir=="up") {
+                setSortDir("down")
+            } else {
+                setSortDir("up")
+            }
+        } else {
+            setSortCollumn(col)
+            setSortDir("down")
+        }
+    }
+
+    const SortTableAndSetData = (dataToSort) => {
+        var newData = Array.from(dataToSort)
+        newData.sort((a, b)=>{
+            if (sortCollumn == "fileNum") {
+                var aParsed = parseInt(a[sortCollumn], 10)
+                var bParsed = parseInt(b[sortCollumn], 10)
+                if (sortDir == "down") {
+                    return aParsed < bParsed ? -1 : 1
+                } else {
+                    return bParsed < aParsed ? -1 : 1
+                }
+
+            }
+            if (sortDir == "down") {
+                return a[sortCollumn].localeCompare(b[sortCollumn])
+            } else {
+                return b[sortCollumn].localeCompare(a[sortCollumn])
+            }
+        })
+        setData(newData)
+    }
 
     return (
         <div id="appTable">
-            <table className="table" style={{padding:"10px"}}>
+            <table className="table table-hover table-striped" style={{padding:"10px"}}>
                 <thead>
                     <tr>
-                        <th scope="col" width="7%">File Num</th>
-                        <th scope="col" width="30%">"Report" Title</th>
-                        <th scope="col" width="20%">Author</th>
-                        <th scope="col" width="43%">Preview</th>
+                        <th scope="col" width="7%">
+                            File Num
+                            <span style={{paddingLeft:"5px"}} onClick={()=>{HandleSetSort("fileNum")}}>
+                                {GetSortIcon("fileNum")}
+                            </span>
+                        </th>
+                        <th scope="col" width="30%">
+                            "Report" Title
+                            <span style={{paddingLeft:"5px"}} onClick={()=>{HandleSetSort("title")}}>
+                                {GetSortIcon("title")}
+                            </span>
+                        </th>
+                        <th scope="col" width="20%">
+                            Author
+                            <span style={{paddingLeft:"5px"}} onClick={()=>{HandleSetSort("author")}}>
+                                {GetSortIcon("author")}
+                            </span>
+                        </th>
+                        <th scope="col" width="43%">
+                            Preview
+                        </th>
                     </tr>
                 </thead>
                 <tbody>
                     {GenerateTableRows()}
                 </tbody>
             </table>
-            <nav>
+            <nav >
                 <ul className="pagination">
-                    <li className="page-item page-primary"><a className="page-link" href={`?page=${page-1}`} aria-disabled={page==1}>Previous</a></li>
+                    <li className={`page-item ${page==1?"disabled":""}`}>
+                        <a className="page-link" pagenum={`${page-1}`} onClick={HandlePageSelection} aria-disabled={page==1?"true":"false"}>Previous</a>
+                    </li>
                     {GetPages()}
-                    <li className="page-item page-primary"><a className="page-link" href={`?page=${page+1}`} aria-disabled={page==numOfPages}>Next</a></li>
+                    <li className={`page-item ${page==numOfPages?"disabled":""}`}>
+                        <a className="page-link" pagenum={`${page+1}`} onClick={HandlePageSelection} aria-disabled={page==numOfPages?"true":"false"}>Next</a>
+                    </li>
                 </ul>
             </nav>
             <AlertSnackbar Text="An error occured when getting the table data" AlertType="danger" Show={show}/>
