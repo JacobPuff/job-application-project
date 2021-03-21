@@ -1,58 +1,28 @@
 import React, {useState, useEffect} from 'react';
-import { AlertSnackbar } from './Alert';
 import { DEFAULT_MAX_PER_PAGE, RELATIVE_PAGE_RANGE } from '../config';
 
-const axios = require('axios');
-
 export function Table(props) {
-    const [data, setData] = useState([])
+    const [data, setData] = useState(props.InitialData?props.InitialData:[])
     const [numOfPages, setNumOfPages] = useState(-1)
     const [page, setPage] = useState(-1)
-    const [showAlert, setShowAlert] = useState(false)
     const [sortCollumn, setSortCollumn] = useState("fileNum")
     const [sortDir, setSortDir] = useState("down")
 
     useEffect(()=> {
-        GetTableData()
-    }, [])
-
-    useEffect(()=> {
-        var tempNumOfPages = Math.ceil(data.length/DEFAULT_MAX_PER_PAGE)
+        SortTableAndSetData(props.InitialData)
+        var tempNumOfPages = Math.ceil(props.InitialData.length/DEFAULT_MAX_PER_PAGE)
         setNumOfPages(tempNumOfPages)
-        //Internet Explorer doens't support URLSearchParams.
-        var params = new URLSearchParams(window.location.search);
-        var pageNum = 1
-        if (params.get("report")) {
-            var reportMetadata = data.filter(d=>d.fileNum == params.get("report"))
-            if (reportMetadata[0]) {
-                SelectReport(reportMetadata[0])
-            } else {
-                SelectReport({"fileNum": params.get("report"), "title": "Unknown"})
-            }
-        }
-        if (params.get("page")) {
-            pageNum = parseInt(params.get("page"), 10)
-        }
-        if (pageNum < 1 || (tempNumOfPages > 0 && pageNum > tempNumOfPages)) {
+        if (props.InitialPageNum &&
+            (props.InitialPageNum < 1 || (tempNumOfPages > 0 && props.InitialPageNum > tempNumOfPages))) {
             window.location = "/"
         }
-        setPage(pageNum)
-    }, [data, props])
+        setPage(props.InitialPageNum?props.InitialPageNum:1)
+        SortTableAndSetData(props.InitialData)
+    }, [props])
 
     useEffect(()=>{
         SortTableAndSetData(data)
     }, [sortDir, sortCollumn])
-
-    const GetTableData = () => {
-        axios.get('/api')
-        .then((response)=>{
-            SortTableAndSetData(response.data)
-        })
-        .catch((error)=>{
-            console.log(error)
-            setShowAlert(true)
-        })
-    }
 
     const SelectReport = (reportMetadata) => {
         props.SelectReport(reportMetadata, page)
@@ -97,7 +67,7 @@ export function Table(props) {
     }
     const HandlePageSelection = (e) => {
         var pageNum = parseInt(e.target.attributes.pagenum.value, 10)
-        history.pushState({}, '', window.location.origin+"/?page="+pageNum)
+        history.pushState({data:data}, '', window.location.origin+"/?page="+pageNum)
         setPage(pageNum)
     }
 
@@ -205,7 +175,6 @@ export function Table(props) {
                     </li>
                 </ul>
             </nav>
-            <AlertSnackbar Text="An error occured when getting the table data. Please try again later." AlertType="danger" Show={showAlert}/>
         </div>
     )
 }
