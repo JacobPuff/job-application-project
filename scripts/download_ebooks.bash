@@ -1,7 +1,7 @@
 #!/bin/bash
 declare -i count=0
-declare -i i=10
-# Start at ten because file 1 is not formatted the same as the rest, and I know the next existing file is 10.
+declare -i i=11
+# Start at 11 because file 1 is not formatted the same as the rest, the next existing file is 10, but it's a huge file, so I'm starting at 11.
 until [[ count -eq 100 ]]
 do
     text=`curl -f https://www.gutenberg.org/files/${i}/${i}-0.txt`

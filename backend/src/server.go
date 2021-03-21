@@ -139,6 +139,8 @@ func (apiHandler *ApiHandler) HandleAPITags(writer http.ResponseWriter, request 
 
 func SearchFiles(query string, listOfMetaData []structs.FileMetaData) (structs.SearchResults, error) {
 	// In a real app you would be using something like ElasticSearch to index your data.
+	// This is also a pretty basic search, but without something like ElasticSearch
+	// implementing a fully featured search would take a lot of time.
 	whitespaceRegex := regexp.MustCompile(`\s+`)
 	results := structs.SearchResults{Query: query, Results: []structs.FileMetaData{}}
 	fileInfo, err := os.ReadDir(appconfig.StorageUnprocessedFilesDir);
