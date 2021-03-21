@@ -10,6 +10,7 @@ var StorageDir = getEnvOrDefault("STORAGE_DIR",BaseAppDir+"/storage")
 var StorageFilesDir = StorageDir+"/files"
 var StorageUnprocessedFilesDir = StorageDir+"/unprocessed_files"
 var StorageDataFilesDir = StorageDir+"/data_storage_files"
+var TagDataFilePath = StorageDataFilesDir+"/FileTagData.json"
 
 func getEnvOrDefault(envVar string, defaultValue string) string {
 	value := os.Getenv(envVar)

@@ -1,25 +1,29 @@
 package main
 
 import (
-	"net/http"
+	"bytes"
+	"encoding/json"
 	"fmt"
-	"time"
+	"io"
+	"io/fs"
 	"log"
-	"strings"
-	"strconv"
+	"net/http"
 	"os"
 	"os/signal"
-	"bytes"
-	"syscall"
-	"io/fs"
-	"encoding/json"
 	"regexp"
+	"strconv"
+	"strings"
+	"sync"
+	"syscall"
+	"time"
 	appconfig "jacob.squizzlezig.com/jobapplicationproject/appconfig"
 	structs "jacob.squizzlezig.com/jobapplicationproject/structs"
 )
 
 type ApiHandler struct {
-	listOfMetaData []structs.FileMetaData
+	ListOfMetaData []structs.FileMetaData
+	TagMetaDataStorage structs.TagMetaData
+	TagDataFile structs.TagDataFileMutex
 }
 
 func main() {
@@ -43,7 +47,9 @@ func main() {
 
 	fmt.Println("Generating file metadata")
 	apiHandler := ApiHandler{}
-	apiHandler.listOfMetaData = GenerateTextFilesAndMetadata()
+	apiHandler.TagDataFile.TagDataFile = GetTagDataFile()
+	apiHandler.TagMetaDataStorage = GetTagMetaDataFromFile(apiHandler.TagDataFile)
+	apiHandler.ListOfMetaData = GenerateTextFilesAndMetadata()
 	http.HandleFunc("/api", apiHandler.HandleAPI)
 	fmt.Println("Running on port " + appconfig.ServerPort)
 	log.Fatal(httpServer.ListenAndServe())
@@ -83,7 +89,7 @@ func (apiHandler *ApiHandler) HandleAPI(writer http.ResponseWriter, request *htt
 			writer.Write(fileBytes)
 			return
 		} else {
-			bytesMetadata, err := json.Marshal(apiHandler.listOfMetaData)
+			bytesMetadata, err := json.Marshal(apiHandler.ListOfMetaData)
 			if err != nil {
 				fmt.Println("ERROR: Couldn't marshal metadata: " + err.Error())
 			}
@@ -116,7 +122,7 @@ func (apiHandler *ApiHandler) HandleAPI(writer http.ResponseWriter, request *htt
 			return
 		}
 
-		results, err := SearchFiles(searchQuery.Query, apiHandler.listOfMetaData)
+		results, err := SearchFiles(searchQuery.Query, apiHandler.ListOfMetaData)
 		if err != nil {
 			fmt.Println(err.Error())
 			writer.WriteHeader(http.StatusInternalServerError)
@@ -134,6 +140,16 @@ func (apiHandler *ApiHandler) HandleAPI(writer http.ResponseWriter, request *htt
 
 func (apiHandler *ApiHandler) HandleAPITags(writer http.ResponseWriter, request *http.Request) {
 	// This would normally go into a database. The database is going to be better at handling transactions.
+	// DEV
+	fmt.Println(request.Method, request.URL)
+
+	if request.Method == "GET" {
+
+	}
+
+	if request.Method == "POST" {
+		
+	}
 	return
 }
 
@@ -271,6 +287,29 @@ func GenerateTextFilesAndMetadata() []structs.FileMetaData {
 	return listOfMetaData
 }
 
+func GetTagDataFile() *os.File {
+	tagsFile, err := os.OpenFile(appconfig.TagDataFilePath, os.O_RDWR|os.O_CREATE, 0666)
+	if err != nil {
+		panic("ERROR: Error reading tag data file.")
+	}
+	return tagsFile
+}
+
+func GetTagMetaDataFromFile(file *os.File) structs.TagMetaData {
+	tagMetaData := structs.TagMetaData {
+		FileToTagsMap: make(map[int][]string),
+		TagToCountMap: make(map[string]int),
+	}
+	buf := bytes.NewBuffer(nil)
+	io.Copy(buf, file)
+	if len(buf.Bytes()) > 0 {
+		err := json.Unmarshal(buf.Bytes(), &tagMetaData)
+		if err != nil && err.Error() != "unexpected end of JSON input" {
+			panic("ERROR: Error unmarshalling tag data file. "+err.Error())
+		}
+	}
+	return tagMetaData
+}
 
 func GetBytesOfFile(path string) ([]byte, error) {
 	bytes, err := os.ReadFile(path)
