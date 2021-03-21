@@ -11,7 +11,7 @@ export function Report(props) {
     const splitRegex = new RegExp(/[\r\n]\s[\n\r\s]+/, 'g');
 
     useEffect(()=>{
-        if (props.ReportMetadata.fileNum) {
+        if (props.ReportMetadata.fileNum && props.IsVisible) {
             GetReport()
         }
     }, [props])

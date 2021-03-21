@@ -9,7 +9,6 @@ Afterwards run `/scripts/run_docker.bash`.
 Then go to `localhost:9090` in your browser.
 
 ### Why I used what I did
-
 #### Golang
 Fast and simple to use. Lots of stuff for web services is already implemented.
 #### React
