@@ -13,7 +13,6 @@ import (
 	"regexp"
 	"strconv"
 	"strings"
-	// "sync"
 	"syscall"
 	"time"
 	appconfig "jacob.squizzlezig.com/jobapplicationproject/appconfig"
@@ -49,7 +48,7 @@ func main() {
 	apiHandler := ApiHandler{}
 	apiHandler.TagDataFile.TagDataFile = GetTagDataFile()
 	apiHandler.TagMetaDataStorage = GetTagMetaDataFromFile(apiHandler.TagDataFile.TagDataFile)
-	apiHandler.ListOfMetaData = GenerateTextFilesAndMetadata()
+	apiHandler.ListOfMetaData = GenerateTextFilesAndMetadata(&apiHandler)
 	http.HandleFunc("/api", apiHandler.HandleAPI)
 	http.HandleFunc("/api/tags", apiHandler.HandleAPITags)
 	fmt.Println("Running on port " + appconfig.ServerPort)
@@ -245,6 +244,13 @@ func (apiHandler *ApiHandler) HandleAPITags(writer http.ResponseWriter, request 
 			writer.Write([]byte("File already has this tag"))
 			return
 		}
+		
+		// While I'm not sure this will matter, I'm adding it because I don't want to find out later in this weekend project.
+		indexOfMetaData := FindIndexOfFileMetadataWithFileNum(*tag.FileNum, apiHandler.ListOfMetaData)
+		if indexOfMetaData != -1 {
+			apiHandler.ListOfMetaData[indexOfMetaData].Tags = apiHandler.TagMetaDataStorage.FileToTagsMap[*tag.FileNum]
+		}
+
 		err = WriteTagMetaDataToStorageFile(apiHandler)
 		if err != nil {
 			writer.WriteHeader(http.StatusInternalServerError)
@@ -280,6 +286,13 @@ func (apiHandler *ApiHandler) HandleAPITags(writer http.ResponseWriter, request 
 			writer.Write([]byte("File doesn't have this tag"))
 			return
 		}
+		
+		// While I'm not sure this will matter, I'm adding it because I don't want to find out later in this weekend project.
+		indexOfMetaData := FindIndexOfFileMetadataWithFileNum(*tag.FileNum, apiHandler.ListOfMetaData)
+		if indexOfMetaData != -1 {
+			apiHandler.ListOfMetaData[indexOfMetaData].Tags = apiHandler.TagMetaDataStorage.FileToTagsMap[*tag.FileNum]
+		}
+
 		err = WriteTagMetaDataToStorageFile(apiHandler)
 		if err != nil {
 			writer.WriteHeader(http.StatusInternalServerError)
@@ -373,7 +386,7 @@ func SearchFiles(query string, listOfMetaData []structs.FileMetaData) (structs.S
 	return results, nil
 }
 
-func GenerateTextFilesAndMetadata() []structs.FileMetaData {
+func GenerateTextFilesAndMetadata(apiHandler *ApiHandler) []structs.FileMetaData {
 	whitespaceRegex := regexp.MustCompile(`\s+`)
 	fileInfo, err := os.ReadDir(appconfig.StorageUnprocessedFilesDir);
 	if err != nil {
@@ -400,10 +413,13 @@ func GenerateTextFilesAndMetadata() []structs.FileMetaData {
 			Author: "Unknown",
 			Preview: strings.TrimSpace(string(bytePreview))+"...",
 		}
+
 		newMetaData.FileNum, err = strconv.Atoi(file.Name()[0:len(file.Name())-4])
 		if err != nil {
 			panic(fmt.Sprintf("ERROR (GenerateTextFilesAndMetadata): Couldn't get integer name of file %s: %s\n", file.Name(), err.Error()))
 		}
+		
+		newMetaData.Tags = apiHandler.TagMetaDataStorage.FileToTagsMap[newMetaData.FileNum]
 
 		foundTitleIndex := -1
 		for i, line := range metaDataSection {
