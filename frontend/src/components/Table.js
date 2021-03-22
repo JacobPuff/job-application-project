@@ -47,7 +47,7 @@ export function Table(props) {
                 <td onClick={()=>{SelectReport(d)}}>{d.title}<p className="text-muted">{d.subtitle}</p></td>
                 <td onClick={()=>{SelectReport(d)}}>{d.author}</td>
                 <td onClick={()=>{SelectReport(d)}}>{d.preview}</td>
-                <td><TagDropdown Tags={d.tags} ItemOnPage={i}/></td>
+                <td><TagDropdown Tags={d.tags} TagData={props.TagData} ItemOnPage={i}/></td>
             </tr>)
     }
 9 

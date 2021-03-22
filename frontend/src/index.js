@@ -15,16 +15,31 @@ function App() {
     const [showAlert, setShowAlert] = useState(false)
     const [selectedPage, setSelectedPage] = useState(1)
     const [initialData, setInitialData] = useState([])
+    const [tagData, setTagData] = useState({})
     const [selectedReportMetadata, setSelectedReportMetadata] = useState({})
     
     useEffect(()=>{
         GetTableData()
+        GetTagData()
         window.onpopstate = HandleHistory
     }, [])
 
     useEffect(()=>{
         HandleHistory()
     },[initialData])
+
+    const GetTagData = () => {
+        axios.get('/api/tags')
+        .then((response)=>{
+            response.data.tagCounts={"test 1":2, "test 2": 3, "test 3": 1}
+            setTagData(response.data)
+            setShowAlert(false)
+        })
+        .catch((error)=>{
+            console.log(error)
+            setShowAlert(true)
+        })
+    }
 
     const GetTableData = () => {
         axios.get('/api')
@@ -117,8 +132,8 @@ function App() {
                 <h4 style={{display:"inline-block", width:"70%"}}>{title}</h4>
                 <SearchBar style={{width:"30%", marginLeft:"auto", display:"inline-block"}} DoSearch={DoSearch}/>
             </div>
-            <Table InitialData={initialData} InitialPageNum={selectedPage} IsVisible={showTable} SelectReport={SelectReport}/>
-            <Report IsVisible={showReport} ReportMetadata={selectedReportMetadata} BackToTable={BackToTable}/>
+            <Table InitialData={initialData} InitialPageNum={selectedPage} TagData={tagData} IsVisible={showTable} SelectReport={SelectReport}/>
+            <Report IsVisible={showReport} ReportMetadata={selectedReportMetadata} TagData={tagData} BackToTable={BackToTable}/>
             <AlertSnackbar Text="An error occured when getting the table data. Please try again later." AlertType="danger" Show={showAlert}
                 HandleClose={()=>{setShowAlert(false)}}/>
         </div>
