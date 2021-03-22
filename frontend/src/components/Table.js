@@ -35,6 +35,11 @@ export function Table(props) {
         props.SelectReport(reportMetadata, page)
     }
 
+    const HandleTags = (tagName, fileNum) => {
+        console.log(tagName, fileNum)
+        props.ToggleTags(tagName, fileNum)
+    }
+
     const GenerateTableRows = () => {
         var start = (page-1)*DEFAULT_MAX_PER_PAGE
         var end = start+DEFAULT_MAX_PER_PAGE
@@ -47,7 +52,7 @@ export function Table(props) {
                 <td onClick={()=>{SelectReport(d)}}>{d.title}<p className="text-muted">{d.subtitle}</p></td>
                 <td onClick={()=>{SelectReport(d)}}>{d.author}</td>
                 <td onClick={()=>{SelectReport(d)}}>{d.preview}</td>
-                <td><TagDropdown Tags={d.tags} TagData={props.TagData} ItemOnPage={i}/></td>
+                <td><TagDropdown FileNum={d.fileNum} TagData={props.TagData} HandleTags={HandleTags}/></td>
             </tr>)
     }
 9 

@@ -9,6 +9,9 @@ import {DEFAULT_APP_TITLE} from './config';
 const axios = require('axios');
 
 function App() {
+    const TABLE_ERROR = "An error occured when getting the table data. Please try again later."
+    const TAG_GET_ERROR = "An error occured getting the tags. Please try again later."
+    const TAG_UPDATE_ERROR = "An error occured updating tags. Please try again later."
     const [title, setTitle] = useState(DEFAULT_APP_TITLE)
     const [showTable, setShowTable] = useState(true)
     const [showReport, setShowReport] = useState(false)
@@ -16,7 +19,10 @@ function App() {
     const [selectedPage, setSelectedPage] = useState(1)
     const [initialData, setInitialData] = useState([])
     const [tagData, setTagData] = useState({})
+    // I do not like this solution. More reading required.
+    const [tagDataUpdated, setTagDataUpdate] = useState(false)
     const [selectedReportMetadata, setSelectedReportMetadata] = useState({})
+    const [alertText, setAlertText] = useState(TABLE_ERROR)
     
     useEffect(()=>{
         GetTableData()
@@ -28,19 +34,6 @@ function App() {
         HandleHistory()
     },[initialData])
 
-    const GetTagData = () => {
-        axios.get('/api/tags')
-        .then((response)=>{
-            response.data.tagCounts={"test 1":2, "test 2": 3, "test 3": 1}
-            setTagData(response.data)
-            setShowAlert(false)
-        })
-        .catch((error)=>{
-            console.log(error)
-            setShowAlert(true)
-        })
-    }
-
     const GetTableData = () => {
         axios.get('/api')
         .then((response)=>{
@@ -50,8 +43,60 @@ function App() {
         })
         .catch((error)=>{
             console.log(error)
+            setAlertText(TABLE_ERROR)
             setShowAlert(true)
         })
+    }
+
+    const GetTagData = () => {
+        axios.get('/api/tags')
+        .then((response)=>{
+            response.data
+            setTagData(response.data)
+            setShowAlert(false)
+        })
+        .catch((error)=>{
+            console.log(error)
+            setAlertText(TAG_GET_ERROR)
+            setShowAlert(true)
+        })
+    }
+
+    const ToggleTags = (tagName, fileNum) => {
+        if (tagData.fileToTags[fileNum] && tagData.fileToTags[fileNum].includes(tagName)) {
+            axios.delete('/api/tags', {data: {"tag": tagName, "fileNum": fileNum}})
+            .then(()=>{
+                var newTagData = tagData
+                newTagData.tagCounts[tagName]>1 ? newTagData.tagCounts[tagName]-=1 : delete newTagData.tagCounts[tagName]
+                newTagData.fileToTags[fileNum] = newTagData.fileToTags[fileNum].filter(t=>t!=tagName)
+                setTagData(tagData)
+                setTagDataUpdate(!tagDataUpdated)
+                setShowAlert(false)
+            })
+            .catch((error)=>{
+                console.log(error)
+                setAlertText(TAG_UPDATE_ERROR)
+                setShowAlert(true)
+            })
+        } else {
+            axios.post('/api/tags', {"tag": tagName, "fileNum": fileNum})
+            .then(()=>{
+                var newTagData = tagData
+                newTagData.tagCounts[tagName] = newTagData.tagCounts[tagName]+1 || 0
+                if (newTagData.fileToTags[fileNum] == undefined) {
+                    newTagData.fileToTags[fileNum] = []
+                }
+                newTagData.fileToTags[fileNum].push(tagName)
+                setTagData(tagData)
+                setTagDataUpdate(!tagDataUpdated)
+                setShowAlert(false)
+            })
+            .catch((error)=>{
+                console.log(error)
+                setAlertText(TAG_UPDATE_ERROR)
+                setShowAlert(true)
+            })
+        }
     }
 
     const HandleHistory = (e) => {
@@ -132,9 +177,9 @@ function App() {
                 <h4 style={{display:"inline-block", width:"70%"}}>{title}</h4>
                 <SearchBar style={{width:"30%", marginLeft:"auto", display:"inline-block"}} DoSearch={DoSearch}/>
             </div>
-            <Table InitialData={initialData} InitialPageNum={selectedPage} TagData={tagData} IsVisible={showTable} SelectReport={SelectReport}/>
+            <Table InitialData={initialData} InitialPageNum={selectedPage} TagData={tagData} ToggleTags={ToggleTags} IsVisible={showTable} SelectReport={SelectReport}/>
             <Report IsVisible={showReport} ReportMetadata={selectedReportMetadata} TagData={tagData} BackToTable={BackToTable}/>
-            <AlertSnackbar Text="An error occured when getting the table data. Please try again later." AlertType="danger" Show={showAlert}
+            <AlertSnackbar Text={alertText} AlertType="danger" Show={showAlert}
                 HandleClose={()=>{setShowAlert(false)}}/>
         </div>
     );

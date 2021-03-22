@@ -3,15 +3,31 @@ import {Tag} from './Tag'
 
 export function TagDropdown(props) {
     const GetTagListItems = () => {
-        var listOfEnabledTagItems = []
-        var listOfDisabledTagItems = []
-        for (const test in props.TagData.tagCounts) {
-            listOfEnabledTagItems.push(<li><Tag Name={test} Enabled={true}/></li>)
+        console.log("Dropdown", props.FileNum)
+        if (props.TagData.tagCounts == undefined || props.TagData.fileToTags == undefined ) {
+            return
         }
-        for (const test in props.TagData.tagCounts) {
-            listOfEnabledTagItems.push(<li><Tag Name={test} Enabled={false}/></li>)
+        var listOfTagItems = []
+        var count=0
+        if (props.TagData.fileToTags[props.FileNum] != undefined) {
+            for (const tag of props.TagData.fileToTags[props.FileNum]) {
+                listOfTagItems.push(<li key={count} onClick={()=>{props.HandleTags(tag, props.FileNum)}}>
+                    <Tag Name={tag} Enabled={true}/>
+                    </li>)
+                count++
+            }
         }
-        return listOfEnabledTagItems
+
+        for (const tag in props.TagData.tagCounts) {
+            if (props.TagData.fileToTags[props.FileNum] && props.TagData.fileToTags[props.FileNum].includes(tag)) {
+                continue
+            }
+            listOfTagItems.push(<li key={count} onClick={()=>{props.HandleTags(tag, props.FileNum)}}>
+                <Tag Name={tag} Enabled={false}/>
+                </li>)
+            count++
+        }
+        return listOfTagItems
     }
 
     return <div className="btn-group dropdown dropstart">
