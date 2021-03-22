@@ -13,7 +13,7 @@ import (
 	"regexp"
 	"strconv"
 	"strings"
-	"sync"
+	// "sync"
 	"syscall"
 	"time"
 	appconfig "jacob.squizzlezig.com/jobapplicationproject/appconfig"
@@ -48,9 +48,10 @@ func main() {
 	fmt.Println("Generating file metadata")
 	apiHandler := ApiHandler{}
 	apiHandler.TagDataFile.TagDataFile = GetTagDataFile()
-	apiHandler.TagMetaDataStorage = GetTagMetaDataFromFile(apiHandler.TagDataFile)
+	apiHandler.TagMetaDataStorage = GetTagMetaDataFromFile(apiHandler.TagDataFile.TagDataFile)
 	apiHandler.ListOfMetaData = GenerateTextFilesAndMetadata()
 	http.HandleFunc("/api", apiHandler.HandleAPI)
+	http.HandleFunc("/api/tags", apiHandler.HandleAPITags)
 	fmt.Println("Running on port " + appconfig.ServerPort)
 	log.Fatal(httpServer.ListenAndServe())
 }
@@ -136,20 +137,48 @@ func (apiHandler *ApiHandler) HandleAPI(writer http.ResponseWriter, request *htt
 		}
 		writer.Write(bytesResult)
 	}
+	writer.WriteHeader(http.StatusMethodNotAllowed)
+	return
 }
 
 func (apiHandler *ApiHandler) HandleAPITags(writer http.ResponseWriter, request *http.Request) {
 	// This would normally go into a database. The database is going to be better at handling transactions.
 	// DEV
 	fmt.Println(request.Method, request.URL)
-
 	if request.Method == "GET" {
-
+		bytesTagsMetadata, err := json.Marshal(apiHandler.TagMetaDataStorage)
+		if err != nil {
+			fmt.Println("ERROR: Couldn't marshal tags metadata: " + err.Error())
+		}
+		writer.Write(bytesTagsMetadata)
+		return
 	}
 
 	if request.Method == "POST" {
-		
+		tag := structs.AddTagRequest{}
+		buf := new(bytes.Buffer)
+		buf.ReadFrom(request.Body)
+		err := json.Unmarshal(buf.Bytes(), &tag)
+		if err != nil {
+			fmt.Println("ERROR:", err.Error())
+			if err.Error() == "unexpected end of JSON input" {
+				writer.WriteHeader(http.StatusBadRequest)
+				writer.Write([]byte("Request must have body"))
+				return
+			}
+			if _, ok := err.(*json.UnmarshalTypeError); ok {
+				writer.WriteHeader(http.StatusBadRequest)
+				writer.Write([]byte("tag must be a string"))
+				return
+			}
+		}
+		if tag.Tag == "" {
+			writer.WriteHeader(http.StatusBadRequest)
+			writer.Write([]byte("tag must not be blank"))
+			return
+		}
 	}
+	writer.WriteHeader(http.StatusMethodNotAllowed)
 	return
 }
 
@@ -290,7 +319,7 @@ func GenerateTextFilesAndMetadata() []structs.FileMetaData {
 func GetTagDataFile() *os.File {
 	tagsFile, err := os.OpenFile(appconfig.TagDataFilePath, os.O_RDWR|os.O_CREATE, 0666)
 	if err != nil {
-		panic("ERROR: Error reading tag data file.")
+		panic("ERROR: Error reading tag data file. "+err.Error())
 	}
 	return tagsFile
 }

@@ -24,6 +24,11 @@ type TagMetaData struct {
 	TagToCountMap map[string]int `json:"tagCounts"`
 }
 
+
+type AddTagRequest struct {
+	Tag string `json:"tag"`
+}
+
 type SearchQuery struct {
 	Query string `json:"query"`
 }
