@@ -13,6 +13,9 @@ export function Report(props) {
     useEffect(()=>{
         if (props.ReportMetadata.fileNum && props.IsVisible) {
             GetReport()
+        } else {
+            setReportText(LOADING_STATE)
+            setShowAlert(false)
         }
     }, [props])
 

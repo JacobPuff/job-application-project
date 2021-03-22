@@ -41,9 +41,12 @@ function App() {
 
     const HandleHistory = (e) => {
         var tempInitialData = initialData
-        if (e != undefined) {
+        var setTempState = false
+        if (e != undefined && e.state != undefined && e.state.data) {
             tempInitialData = e.state.data
+            setTempState = true
         }
+        setSelectedReportMetadata({})
         //Internet Explorer doens't support URLSearchParams.
         var params = new URLSearchParams(window.location.search);
         var tempShowReport = false
@@ -67,11 +70,12 @@ function App() {
         setSelectedPage(pageNum)
         if (tempShowReport == false){
             setTitle(DEFAULT_APP_TITLE)
+            setSelectedReportMetadata({})
             setShowTable(true)
             setShowReport(false)
         }
 
-        if (e != undefined) {
+        if (setTempState) {
             setInitialData(tempInitialData)
         }
     }
