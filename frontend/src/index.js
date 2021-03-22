@@ -62,6 +62,9 @@ function App() {
     }
 
     const ToggleTags = (tagName, fileNum) => {
+        if (tagName == "") {
+            return
+        }
         if (tagDataFileToTags[fileNum] && tagDataFileToTags[fileNum].includes(tagName)) {
             axios.delete('/api/tags', {data: {"tag": tagName, "fileNum": fileNum}})
             .then(()=>{

@@ -6,11 +6,17 @@ export function TagDropdown(props) {
     const HandleTagAdder = (e) => {
         if (e.key == "Enter" || e.keyCode == 13 || e.code == "Enter") {
             e.preventDefault()
+            setTextAdder("")
             props.HandleTags(textAdder, props.FileNum)
         }
         if (e.target.value != textAdder){
             setTextAdder(e.target.value)
         }
+    }
+
+    const HandleButton = () => {
+        setTextAdder("")
+        props.HandleTags(textAdder, props.FileNum)
     }
 
     const HandleTagClick = (e, tag) => {
@@ -52,7 +58,7 @@ export function TagDropdown(props) {
             <li>
                 <input style={{width:"85%", display:"inline-block"}} type="text" className="form-control"
                     placeholder="Add Tag" value={textAdder} onChange={HandleTagAdder} onKeyDown={HandleTagAdder}  onClick={(e)=>{e.preventDefault()}} />
-                <button style={{display:"inline-block", padding:"5px"}} type="button" className="btn btn-success" onClick={()=>{props.HandleTags(textAdder, props.FileNum)}}>+</button>
+                <button style={{display:"inline-block", padding:"5px"}} type="button" className="btn btn-success" onClick={HandleButton}>+</button>
             </li>
             <li><hr className="dropdown-divider"/></li>
             {GetTagListItems()}
