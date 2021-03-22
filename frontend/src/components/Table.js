@@ -1,5 +1,6 @@
 import React, {useState, useEffect} from 'react';
 import { DEFAULT_MAX_PER_PAGE, RELATIVE_PAGE_RANGE } from '../config';
+import { TagDropdown } from './TagDropdown';
 
 export function Table(props) {
     const EMPTY_PAGE = <tr key={-1}>
@@ -40,13 +41,13 @@ export function Table(props) {
         if (data.length == 0) {
             return EMPTY_PAGE
         }
-        return data.slice(start,end).map(d=>
-            <tr key={d.fileNum} onClick={()=>{SelectReport(d)}}>
-                <th scope="row">{d.fileNum}</th>
-                <td>{d.title}<p className="text-muted">{d.subtitle}</p></td>
-                <td>{d.author}</td>
-                <td>{d.preview}</td>
-                {/* <TagDropdown Tags={d.tags}/> */}
+        return data.slice(start,end).map((d, i)=>
+            <tr key={d.fileNum}>
+                <th scope="row" onClick={()=>{SelectReport(d)}}>{d.fileNum}</th>
+                <td onClick={()=>{SelectReport(d)}}>{d.title}<p className="text-muted">{d.subtitle}</p></td>
+                <td onClick={()=>{SelectReport(d)}}>{d.author}</td>
+                <td onClick={()=>{SelectReport(d)}}>{d.preview}</td>
+                <td><TagDropdown Tags={d.tags} ItemOnPage={i}/></td>
             </tr>)
     }
 9 
@@ -164,9 +165,10 @@ export function Table(props) {
                                 {GetSortIcon("author")}
                             </span>
                         </th>
-                        <th scope="col" width="43%">
+                        <th scope="col" width="41%">
                             Preview
                         </th>
+                        <th scope="col" width="2%"></th>
                     </tr>
                 </thead>
                 <tbody>
