@@ -36,7 +36,6 @@ export function Table(props) {
     }
 
     const HandleTags = (tagName, fileNum) => {
-        console.log(tagName, fileNum)
         props.ToggleTags(tagName, fileNum)
     }
 
@@ -52,7 +51,10 @@ export function Table(props) {
                 <td onClick={()=>{SelectReport(d)}}>{d.title}<p className="text-muted">{d.subtitle}</p></td>
                 <td onClick={()=>{SelectReport(d)}}>{d.author}</td>
                 <td onClick={()=>{SelectReport(d)}}>{d.preview}</td>
-                <td><TagDropdown FileNum={d.fileNum} TagData={props.TagData} HandleTags={HandleTags}/></td>
+                <td>
+                    <TagDropdown FileNum={d.fileNum} TagDataTagCounts={props.TagDataTagCounts}
+                        TagDataFileToTags={props.TagDataFileToTags} HandleTags={HandleTags}/>
+                </td>
             </tr>)
     }
 9 

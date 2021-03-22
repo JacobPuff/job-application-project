@@ -18,9 +18,8 @@ function App() {
     const [showAlert, setShowAlert] = useState(false)
     const [selectedPage, setSelectedPage] = useState(1)
     const [initialData, setInitialData] = useState([])
-    const [tagData, setTagData] = useState({})
-    // I do not like this solution. More reading required.
-    const [tagDataUpdated, setTagDataUpdate] = useState(false)
+    const [tagDataTagCounts, setTagDataTagCounts] = useState({})
+    const [tagDataFileToTags, setTagDataFileToTags] = useState({})
     const [selectedReportMetadata, setSelectedReportMetadata] = useState({})
     const [alertText, setAlertText] = useState(TABLE_ERROR)
     
@@ -42,7 +41,7 @@ function App() {
             setShowAlert(false)
         })
         .catch((error)=>{
-            console.log(error)
+            console.error(error)
             setAlertText(TABLE_ERROR)
             setShowAlert(true)
         })
@@ -51,48 +50,73 @@ function App() {
     const GetTagData = () => {
         axios.get('/api/tags')
         .then((response)=>{
-            response.data
-            setTagData(response.data)
+            setTagDataTagCounts(response.data.tagCounts)
+            setTagDataFileToTags(response.data.fileToTags)
             setShowAlert(false)
         })
         .catch((error)=>{
-            console.log(error)
+            console.error(error)
             setAlertText(TAG_GET_ERROR)
             setShowAlert(true)
         })
     }
 
     const ToggleTags = (tagName, fileNum) => {
-        if (tagData.fileToTags[fileNum] && tagData.fileToTags[fileNum].includes(tagName)) {
+        if (tagDataFileToTags[fileNum] && tagDataFileToTags[fileNum].includes(tagName)) {
             axios.delete('/api/tags', {data: {"tag": tagName, "fileNum": fileNum}})
             .then(()=>{
-                var newTagData = tagData
-                newTagData.tagCounts[tagName]>1 ? newTagData.tagCounts[tagName]-=1 : delete newTagData.tagCounts[tagName]
-                newTagData.fileToTags[fileNum] = newTagData.fileToTags[fileNum].filter(t=>t!=tagName)
-                setTagData(tagData)
-                setTagDataUpdate(!tagDataUpdated)
+                var newTagDataTagCounts = tagDataTagCounts
+                newTagDataTagCounts[tagName]>1 ? newTagDataTagCounts[tagName]-=1 : delete newTagDataTagCounts[tagName]
+
+                var newTagDataFileToTags = tagDataFileToTags
+                newTagDataFileToTags[fileNum] = newTagDataFileToTags[fileNum].filter(t=>t!=tagName)
+
+                setTagDataTagCounts(() => {
+                    return {
+                        ...newTagDataTagCounts
+                    }
+                })
+                setTagDataFileToTags(prevFileToTags => {
+                    return {
+                        ...prevFileToTags,
+                        fileNum:newTagDataFileToTags[fileNum]
+                    }
+                })
                 setShowAlert(false)
             })
             .catch((error)=>{
-                console.log(error)
+                console.error(error)
                 setAlertText(TAG_UPDATE_ERROR)
                 setShowAlert(true)
             })
         } else {
             axios.post('/api/tags', {"tag": tagName, "fileNum": fileNum})
             .then(()=>{
-                var newTagData = tagData
-                newTagData.tagCounts[tagName] = newTagData.tagCounts[tagName]+1 || 0
-                if (newTagData.fileToTags[fileNum] == undefined) {
-                    newTagData.fileToTags[fileNum] = []
+                var newTagDataTagCounts = tagDataTagCounts
+                newTagDataTagCounts[tagName] = newTagDataTagCounts[tagName]+1 || 1
+
+                var newTagDataFileToTags = tagDataFileToTags
+                if (newTagDataFileToTags[fileNum] == undefined) {
+                    newTagDataFileToTags[fileNum] = []
                 }
-                newTagData.fileToTags[fileNum].push(tagName)
-                setTagData(tagData)
-                setTagDataUpdate(!tagDataUpdated)
+                newTagDataFileToTags[fileNum].push(tagName)
+
+                setTagDataTagCounts(() => {
+                    return {
+                        ...newTagDataTagCounts
+                    }
+                })
+                setTagDataFileToTags(prevFileToTags => {
+                    return {
+                        ...prevFileToTags,
+                        fileNum:newTagDataFileToTags[fileNum]
+                    }
+                })
+                // setTagDataUpdate(!tagDataUpdated)
                 setShowAlert(false)
             })
             .catch((error)=>{
-                console.log(error)
+                console.error(error)
                 setAlertText(TAG_UPDATE_ERROR)
                 setShowAlert(true)
             })
@@ -177,8 +201,10 @@ function App() {
                 <h4 style={{display:"inline-block", width:"70%"}}>{title}</h4>
                 <SearchBar style={{width:"30%", marginLeft:"auto", display:"inline-block"}} DoSearch={DoSearch}/>
             </div>
-            <Table InitialData={initialData} InitialPageNum={selectedPage} TagData={tagData} ToggleTags={ToggleTags} IsVisible={showTable} SelectReport={SelectReport}/>
-            <Report IsVisible={showReport} ReportMetadata={selectedReportMetadata} TagData={tagData} BackToTable={BackToTable}/>
+            <Table InitialData={initialData} InitialPageNum={selectedPage} TagDataTagCounts={tagDataTagCounts}
+                TagDataFileToTags={tagDataFileToTags}  ToggleTags={ToggleTags} IsVisible={showTable} SelectReport={SelectReport}/>
+            <Report IsVisible={showReport} ReportMetadata={selectedReportMetadata} 
+                TagDataTagCounts={tagDataTagCounts} TagDataFileToTags={tagDataFileToTags} BackToTable={BackToTable}/>
             <AlertSnackbar Text={alertText} AlertType="danger" Show={showAlert}
                 HandleClose={()=>{setShowAlert(false)}}/>
         </div>
