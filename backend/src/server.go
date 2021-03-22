@@ -148,6 +148,55 @@ func (apiHandler *ApiHandler) HandleAPI(writer http.ResponseWriter, request *htt
 	return
 }
 
+func HandleTagRequestParsing(writer http.ResponseWriter, request *http.Request) (structs.TagRequest, error){
+	tag := structs.TagRequest{}
+	buf := new(bytes.Buffer)
+	buf.ReadFrom(request.Body)
+	err := json.Unmarshal(buf.Bytes(), &tag)
+	if err != nil {
+		if err.Error() == "unexpected end of JSON input" {
+			writer.WriteHeader(http.StatusBadRequest)
+			writer.Write([]byte("Request must have body"))
+			return tag, err
+		}
+		if _, ok := err.(*json.UnmarshalTypeError); ok {
+			writer.WriteHeader(http.StatusBadRequest)
+			if strings.Contains(err.Error(), "tag") {
+				writer.Write([]byte("tag must be a string"))
+			}
+			if strings.Contains(err.Error(), "fileNum") {
+				writer.Write([]byte("fileNum must be an int"))
+			}
+			return tag, err
+		}
+		if _, ok := err.(*json.SyntaxError); ok {
+			writer.WriteHeader(http.StatusBadRequest)
+			writer.Write([]byte(err.Error()))
+		}
+		writer.WriteHeader(http.StatusInternalServerError)
+		return tag, err
+	}
+	if tag.Tag == "" {
+		blankTagErr := "tag must not be blank"
+		writer.WriteHeader(http.StatusBadRequest)
+		writer.Write([]byte(blankTagErr))
+		return tag, fmt.Errorf("%s\n", blankTagErr)
+	}
+	if tag.FileNum == nil {
+		blankTagErr := "Must have fileNum field"
+		writer.WriteHeader(http.StatusBadRequest)
+		writer.Write([]byte(blankTagErr))
+		return tag, fmt.Errorf("%s\n", blankTagErr)
+	}
+	if *tag.FileNum < 0 {
+		lessThanZeroErr := "fileNum must be >= 0"
+		writer.WriteHeader(http.StatusBadRequest)
+		writer.Write([]byte(lessThanZeroErr))
+		return tag, fmt.Errorf("%s\n", lessThanZeroErr)
+	}
+	return tag, nil
+}
+
 func (apiHandler *ApiHandler) HandleAPITags(writer http.ResponseWriter, request *http.Request) {
 	// This would normally go into a database. The database is going to be better at handling transactions.
 	// DEV
@@ -162,50 +211,15 @@ func (apiHandler *ApiHandler) HandleAPITags(writer http.ResponseWriter, request 
 	}
 
 	if request.Method == "POST" {
-		tag := structs.AddTagRequest{}
-		buf := new(bytes.Buffer)
-		buf.ReadFrom(request.Body)
-		err := json.Unmarshal(buf.Bytes(), &tag)
+		tag, err := HandleTagRequestParsing(writer, request)
 		if err != nil {
-			fmt.Println("ERROR:", err.Error())
-			if err.Error() == "unexpected end of JSON input" {
-				writer.WriteHeader(http.StatusBadRequest)
-				writer.Write([]byte("Request must have body"))
-				return
-			}
-			if _, ok := err.(*json.UnmarshalTypeError); ok {
-				writer.WriteHeader(http.StatusBadRequest)
-				if strings.Contains(err.Error(), "tag") {
-					writer.Write([]byte("tag must be a string"))
-				}
-				if strings.Contains(err.Error(), "fileNum") {
-					writer.Write([]byte("fileNum must be an int"))
-				}
-				return
-			}
-			if _, ok := err.(*json.SyntaxError); ok {
-				writer.WriteHeader(http.StatusBadRequest)
-				writer.Write([]byte(err.Error()))
-			}
-			writer.WriteHeader(http.StatusInternalServerError)
+			fmt.Println(err.Error())
 			return
 		}
-
-		if tag.Tag == "" {
-			writer.WriteHeader(http.StatusBadRequest)
-			writer.Write([]byte("tag must not be blank"))
-			return
-		}
-		if tag.FileNum < 0 {
-			writer.WriteHeader(http.StatusBadRequest)
-			writer.Write([]byte("fileNum must be >= 0"))
-			return
-		}
-
 		// Considered an map to empty struct for this. Decided I didn't want to deal with json.
-		if FindIndexOfString(tag.Tag, apiHandler.TagMetaDataStorage.FileToTagsMap[tag.FileNum]) == -1 {
+		if FindIndexOfString(tag.Tag, apiHandler.TagMetaDataStorage.FileToTagsMap[*tag.FileNum]) == -1 {
 			apiHandler.TagMetaDataStorage.TagToCountMap[tag.Tag] = apiHandler.TagMetaDataStorage.TagToCountMap[tag.Tag] + 1
-			apiHandler.TagMetaDataStorage.FileToTagsMap[tag.FileNum] = append(apiHandler.TagMetaDataStorage.FileToTagsMap[tag.FileNum], tag.Tag)
+			apiHandler.TagMetaDataStorage.FileToTagsMap[*tag.FileNum] = append(apiHandler.TagMetaDataStorage.FileToTagsMap[*tag.FileNum], tag.Tag)
 		} else {
 			writer.WriteHeader(http.StatusBadRequest)
 			writer.Write([]byte("File already has this tag"))
@@ -232,7 +246,11 @@ func (apiHandler *ApiHandler) HandleAPITags(writer http.ResponseWriter, request 
 	}
 
 	if request.Method == "DELETE" {
-
+		tag, err := HandleTagRequestParsing(writer, request)
+		if err != nil {
+			fmt.Println(err.Error())
+			return
+		}
 	}
 	writer.WriteHeader(http.StatusMethodNotAllowed)
 	return

@@ -24,8 +24,8 @@ type TagMetaData struct {
 	TagToCountMap map[string]int `json:"tagCounts"`
 }
 
-type AddTagRequest struct {
-	FileNum int `json:"fileNum"`
+type TagRequest struct {
+	FileNum *int `json:"fileNum"`
 	Tag string `json:"tag"`
 }
 
