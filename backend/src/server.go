@@ -197,6 +197,26 @@ func HandleTagRequestParsing(writer http.ResponseWriter, request *http.Request) 
 	return tag, nil
 }
 
+func WriteTagMetaDataToStorageFile(apiHandler *ApiHandler) error {
+	apiHandler.TagDataFile.Mutex.Lock()
+	bytesTagsMetadata, err := json.Marshal(apiHandler.TagMetaDataStorage)
+	if err != nil {
+		fmt.Println("ERROR: Error marshalling tag metadata:", err.Error())
+		apiHandler.TagDataFile.Mutex.Unlock()
+		return err
+	}
+
+	apiHandler.TagDataFile.TagDataFile.Truncate(0)
+	written, err := apiHandler.TagDataFile.TagDataFile.WriteAt(bytesTagsMetadata, 0)
+	if written == 0 || err != nil {
+		fmt.Println("ERROR: Error writing to tag data file:", err.Error())
+		apiHandler.TagDataFile.Mutex.Unlock()
+		return err
+	}
+	apiHandler.TagDataFile.Mutex.Unlock()
+	return nil
+}
+
 func (apiHandler *ApiHandler) HandleAPITags(writer http.ResponseWriter, request *http.Request) {
 	// This would normally go into a database. The database is going to be better at handling transactions.
 	// DEV
@@ -221,27 +241,15 @@ func (apiHandler *ApiHandler) HandleAPITags(writer http.ResponseWriter, request 
 			apiHandler.TagMetaDataStorage.TagToCountMap[tag.Tag] = apiHandler.TagMetaDataStorage.TagToCountMap[tag.Tag] + 1
 			apiHandler.TagMetaDataStorage.FileToTagsMap[*tag.FileNum] = append(apiHandler.TagMetaDataStorage.FileToTagsMap[*tag.FileNum], tag.Tag)
 		} else {
-			writer.WriteHeader(http.StatusBadRequest)
+			writer.WriteHeader(http.StatusForbidden)
 			writer.Write([]byte("File already has this tag"))
 			return
 		}
-
-		apiHandler.TagDataFile.Mutex.Lock()
-		bytesTagsMetadata, err := json.Marshal(apiHandler.TagMetaDataStorage)
+		err = WriteTagMetaDataToStorageFile(apiHandler)
 		if err != nil {
-			fmt.Println("ERROR: Error marshalling tag metadata:", err.Error())
 			writer.WriteHeader(http.StatusInternalServerError)
 			return
 		}
-
-		apiHandler.TagDataFile.TagDataFile.Truncate(0)
-		written, err := apiHandler.TagDataFile.TagDataFile.WriteAt(bytesTagsMetadata, 0)
-		if written == 0 || err != nil {
-			fmt.Println("ERROR: Error writing to tag data file:", err.Error())
-			writer.WriteHeader(http.StatusInternalServerError)
-			return
-		}
-		apiHandler.TagDataFile.Mutex.Unlock()
 		return
 	}
 
@@ -251,6 +259,33 @@ func (apiHandler *ApiHandler) HandleAPITags(writer http.ResponseWriter, request 
 			fmt.Println(err.Error())
 			return
 		}
+		indexOfTag := FindIndexOfString(tag.Tag, apiHandler.TagMetaDataStorage.FileToTagsMap[*tag.FileNum])
+		if indexOfTag != -1 {
+			newTagCount := apiHandler.TagMetaDataStorage.TagToCountMap[tag.Tag] - 1
+			if newTagCount == 0 {
+				delete(apiHandler.TagMetaDataStorage.TagToCountMap, tag.Tag)
+			} else {
+				apiHandler.TagMetaDataStorage.TagToCountMap[tag.Tag] = newTagCount
+			}
+
+			oldFileTagsArray := apiHandler.TagMetaDataStorage.FileToTagsMap[*tag.FileNum]
+			newFileTagsArray := append(oldFileTagsArray[:indexOfTag], oldFileTagsArray[indexOfTag+1:]...)
+			if len(newFileTagsArray) == 0 {
+				delete(apiHandler.TagMetaDataStorage.FileToTagsMap, *tag.FileNum)
+			} else {
+				apiHandler.TagMetaDataStorage.FileToTagsMap[*tag.FileNum] = newFileTagsArray
+			}
+		} else {
+			writer.WriteHeader(http.StatusForbidden)
+			writer.Write([]byte("File doesn't have this tag"))
+			return
+		}
+		err = WriteTagMetaDataToStorageFile(apiHandler)
+		if err != nil {
+			writer.WriteHeader(http.StatusInternalServerError)
+			return
+		}
+		return
 	}
 	writer.WriteHeader(http.StatusMethodNotAllowed)
 	return
