@@ -5,11 +5,6 @@ import (
 	"sync"
 )
 
-type TagDataFileMutex struct {
-	TagDataFile *os.File
-	Mutex   sync.Mutex
-}
-
 type FileMetaData struct {
 	FileNum int `json:"fileNum"`
 	Title string `json:"title"`
@@ -19,13 +14,18 @@ type FileMetaData struct {
 	Tags []string `json:"tags"`
 }
 
+type TagDataFileMutex struct {
+	TagDataFile *os.File
+	Mutex   sync.Mutex
+}
+
 type TagMetaData struct {
 	FileToTagsMap map[int][]string `json:"fileToTags"`
 	TagToCountMap map[string]int `json:"tagCounts"`
 }
 
-
 type AddTagRequest struct {
+	FileNum int `json:"fileNum"`
 	Tag string `json:"tag"`
 }
 

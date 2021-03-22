@@ -116,6 +116,12 @@ func (apiHandler *ApiHandler) HandleAPI(writer http.ResponseWriter, request *htt
 				writer.Write([]byte("query must be a string"))
 				return
 			}
+			if _, ok := err.(*json.SyntaxError); ok {
+				writer.WriteHeader(http.StatusBadRequest)
+				writer.Write([]byte(err.Error()))
+			}
+			writer.WriteHeader(http.StatusInternalServerError)
+			return
 		}
 		if searchQuery.Query == "" {
 			writer.WriteHeader(http.StatusBadRequest)
@@ -136,6 +142,7 @@ func (apiHandler *ApiHandler) HandleAPI(writer http.ResponseWriter, request *htt
 			return
 		}
 		writer.Write(bytesResult)
+		return
 	}
 	writer.WriteHeader(http.StatusMethodNotAllowed)
 	return
@@ -168,15 +175,64 @@ func (apiHandler *ApiHandler) HandleAPITags(writer http.ResponseWriter, request 
 			}
 			if _, ok := err.(*json.UnmarshalTypeError); ok {
 				writer.WriteHeader(http.StatusBadRequest)
-				writer.Write([]byte("tag must be a string"))
+				if strings.Contains(err.Error(), "tag") {
+					writer.Write([]byte("tag must be a string"))
+				}
+				if strings.Contains(err.Error(), "fileNum") {
+					writer.Write([]byte("fileNum must be an int"))
+				}
 				return
 			}
+			if _, ok := err.(*json.SyntaxError); ok {
+				writer.WriteHeader(http.StatusBadRequest)
+				writer.Write([]byte(err.Error()))
+			}
+			writer.WriteHeader(http.StatusInternalServerError)
+			return
 		}
+
 		if tag.Tag == "" {
 			writer.WriteHeader(http.StatusBadRequest)
 			writer.Write([]byte("tag must not be blank"))
 			return
 		}
+		if tag.FileNum < 0 {
+			writer.WriteHeader(http.StatusBadRequest)
+			writer.Write([]byte("fileNum must be >= 0"))
+			return
+		}
+
+		// Considered an map to empty struct for this. Decided I didn't want to deal with json.
+		if FindIndexOfString(tag.Tag, apiHandler.TagMetaDataStorage.FileToTagsMap[tag.FileNum]) == -1 {
+			apiHandler.TagMetaDataStorage.TagToCountMap[tag.Tag] = apiHandler.TagMetaDataStorage.TagToCountMap[tag.Tag] + 1
+			apiHandler.TagMetaDataStorage.FileToTagsMap[tag.FileNum] = append(apiHandler.TagMetaDataStorage.FileToTagsMap[tag.FileNum], tag.Tag)
+		} else {
+			writer.WriteHeader(http.StatusBadRequest)
+			writer.Write([]byte("File already has this tag"))
+			return
+		}
+
+		apiHandler.TagDataFile.Mutex.Lock()
+		bytesTagsMetadata, err := json.Marshal(apiHandler.TagMetaDataStorage)
+		if err != nil {
+			fmt.Println("ERROR: Error marshalling tag metadata:", err.Error())
+			writer.WriteHeader(http.StatusInternalServerError)
+			return
+		}
+
+		apiHandler.TagDataFile.TagDataFile.Truncate(0)
+		written, err := apiHandler.TagDataFile.TagDataFile.WriteAt(bytesTagsMetadata, 0)
+		if written == 0 || err != nil {
+			fmt.Println("ERROR: Error writing to tag data file:", err.Error())
+			writer.WriteHeader(http.StatusInternalServerError)
+			return
+		}
+		apiHandler.TagDataFile.Mutex.Unlock()
+		return
+	}
+
+	if request.Method == "DELETE" {
+
 	}
 	writer.WriteHeader(http.StatusMethodNotAllowed)
 	return
@@ -357,6 +413,15 @@ func CheckForSigs(sigs chan os.Signal) {
 func FindIndexOfFileMetadataWithFileNum(fileNum int, listOfMetaData []structs.FileMetaData) int {
 	for i, metadata := range listOfMetaData {
 		if fileNum == metadata.FileNum {
+			return i
+		}
+	}
+	return -1
+}
+
+func FindIndexOfString(str string, strList []string) int {
+	for i, str2 := range strList {
+		if str == str2 {
 			return i
 		}
 	}
