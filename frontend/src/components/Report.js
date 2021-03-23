@@ -8,6 +8,8 @@ export function Report(props) {
     const LOADING_STATE = <h3 key={-1}>loading...</h3>
     const ERROR_STATE = <h3 key={-2}>An error occured...</h3>
     const [reportText, setReportText] = useState([LOADING_STATE])
+    const [shortcutTags, setShortcutTags] = useState([])
+    const [addTagText, setAddTagText] = useState("")
     const [showAlert, setShowAlert] = useState(false)
     const splitRegex = new RegExp(/[\r\n]\s[\n\r\s]+/, 'g');
 
@@ -18,7 +20,20 @@ export function Report(props) {
             setReportText(LOADING_STATE)
             setShowAlert(false)
         }
+        if (props.TagDataTagCounts) {
+            var sortedTags = SortTags()
+            if (sortedTags.length != 0) {
+                setShortcutTags(sortedTags.splice(0,10))
+            }
+        }
     }, [props])
+
+    useEffect(() => {
+        window.addEventListener('keyup', HandleShorcuts)
+        return ()=> {
+            window.removeEventListener('keyup', HandleShorcuts)
+        }
+    });
 
     const GetReport = () => {
         axios.get('/api?report='+props.ReportMetadata.fileNum)
@@ -43,15 +58,36 @@ export function Report(props) {
         props.BackToTable()
     }
 
+    const HandleAddTagTextChange = (e) => {
+        if (e.key == "Enter" || e.keyCode == 13 || e.code == "Enter") {
+            e.preventDefault()
+            setAddTagText("")
+            props.ToggleTags(addTagText, props.ReportMetadata.fileNum)
+        }
+        if (e.target.value != addTagText){
+            setAddTagText(e.target.value)
+        }
+    }
+
+    const HandleButton = () => {
+        props.ToggleTags(addTagText, props.ReportMetadata.fileNum)
+        setAddTagText("")
+    }
+
     const ToggleTags = (tagData) => {
         props.ToggleTags(tagData.tag, props.ReportMetadata.fileNum)
     }
 
     const HandleShorcuts = (e) => {
-
+        if (e.target.localName == "body") {
+            var num = parseInt(e.key, 10)
+            if (!isNaN(num) && num < shortcutTags.length) {
+                ToggleTags(shortcutTags[(num+10-1)%10])
+            }
+        }
     }
 
-    const GenerateTags = () => {
+    const SortTags = () => {
         if (props.TagDataFileToTags == undefined || props.TagDataTagCounts == undefined){
             return
         }
@@ -61,8 +97,8 @@ export function Report(props) {
             sortedTagsArray.push({
                 tag: tag,
                 count: props.TagDataTagCounts[tag],
-                enabled: filesTags.includes(tag),
-                shortcut: undefined})
+                enabled: filesTags.includes(tag)
+            })
         }
         sortedTagsArray.sort((a, b)=> {
             if (a.count == b.count) {
@@ -70,10 +106,17 @@ export function Report(props) {
             }
             return a.count < b.count ? 1:-1
         })
+        return sortedTagsArray
+    }
+
+    const GenerateTags = () => {
+        if (props.TagDataFileToTags == undefined || props.TagDataTagCounts == undefined){
+            return
+        }
 
         // Get top 10 most used. They will be displayed first.
+        var sortedTagsArray = SortTags()
         var topTenTags = sortedTagsArray.splice(0,10)
-        topTenTags = topTenTags.map((t, i)=>{return {...t, shortcut:(i+1)%10}})
         var enabledTags = sortedTagsArray.filter(t=>t.enabled)
         var disabledTags = sortedTagsArray.filter(t=>!t.enabled)
         return <div>
@@ -98,6 +141,10 @@ export function Report(props) {
             <div className="border-start border-3 border-primary"
             style={{marginLeft:"-3px", width:"30%", display:"inline-block", verticalAlign:"top", padding:"10px"}}>
                 <h4>Tags</h4>
+                <hr className="dropdown-divider"/>
+                <input style={{width:"85%", display:"inline-block"}} type="text" className="form-control"
+                    placeholder="Add Tag" value={addTagText} onChange={HandleAddTagTextChange} onKeyDown={HandleAddTagTextChange}/>
+                <button style={{display:"inline-block", padding:"5px"}} type="button" className="btn btn-success" onClick={HandleButton}>+</button>
                 <hr className="dropdown-divider"/>
                 {GenerateTags()}
             </div>
