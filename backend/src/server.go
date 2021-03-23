@@ -406,10 +406,21 @@ func GenerateTextFilesAndMetadata(apiHandler *ApiHandler) []structs.FileMetaData
 		fileText := string(fileBytes)
 		
 		splitText := strings.SplitN(fileText, "***", 2)
+		fmt.Println(file.Name())
 		metaDataSection := strings.Split(splitText[0], "\r")
-		Text := strings.TrimSpace(splitText[1])
-		bytePreview := whitespaceRegex.ReplaceAll([]byte(Text[0:100]), []byte(" "))
+
+		Text := splitText[0]
+		if len(splitText) > 1 {
+			Text = strings.TrimSpace(splitText[1])
+		}
+		var bytePreview []byte
+		if len(Text) >= 100 {
+			bytePreview = whitespaceRegex.ReplaceAll([]byte(Text[0:100]), []byte(" "))
+		} else {
+			bytePreview = whitespaceRegex.ReplaceAll([]byte(Text[0:len(Text)]), []byte(" "))
+		}
 		newMetaData := structs.FileMetaData{
+			Title: "Unknown",
 			Author: "Unknown",
 			Preview: strings.TrimSpace(string(bytePreview))+"...",
 		}
