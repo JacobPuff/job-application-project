@@ -43,13 +43,20 @@ export function Report(props) {
         props.BackToTable()
     }
 
+    const ToggleTags = (tagData) => {
+        props.ToggleTags(tagData.tag, props.ReportMetadata.fileNum)
+    }
+
+    const HandleShorcuts = (e) => {
+
+    }
+
     const GenerateTags = () => {
         if (props.TagDataFileToTags == undefined || props.TagDataTagCounts == undefined){
             return
         }
         var sortedTagsArray = []
         var filesTags = props.TagDataFileToTags[props.ReportMetadata.fileNum] || []
-        console.log(props)
         for (const tag in props.TagDataTagCounts) {
             sortedTagsArray.push({
                 tag: tag,
@@ -66,18 +73,18 @@ export function Report(props) {
 
         // Get top 10 most used. They will be displayed first.
         var topTenTags = sortedTagsArray.splice(0,10)
-        topTenTags = topTenTags.map((t, i)=>{return {...t, tag: `(${(i+1)%10}) `+t.tag, shortcut:(i+1)%10}})
+        topTenTags = topTenTags.map((t, i)=>{return {...t, shortcut:(i+1)%10}})
         var enabledTags = sortedTagsArray.filter(t=>t.enabled)
         var disabledTags = sortedTagsArray.filter(t=>!t.enabled)
         return <div>
             <h6>Shortcuts</h6>
-            {topTenTags.map((tag, i)=> <Tag key={i} Name={tag.tag} Enabled={tag.enabled}/>)}
+            {topTenTags.map((tag, i)=> <Tag key={i} Tag={`(${(i+1)%10}) `+tag.tag} Enabled={tag.enabled} OnClickTag={()=>{ToggleTags(tag)}}/>)}
             <hr className="dropdown-divider"/>
             <h6>Enabled</h6>
-            {enabledTags.map((tag, i)=> <Tag key={i} Name={tag.tag} Enabled={tag.enabled}/>)}
+            {enabledTags.map((tag, i)=> <Tag key={i} Tag={tag.tag} Enabled={tag.enabled} OnClickTag={ToggleTags}/>)}
             <hr className="dropdown-divider"/>
             <h6>Disabled</h6>
-            {disabledTags.map((tag, i)=> <Tag key={i} Name={tag.tag} Enabled={tag.enabled}/>)}
+            {disabledTags.map((tag, i)=> <Tag key={i} Tag={tag.tag} Enabled={tag.enabled} OnClickTag={ToggleTags}/>)}
         </div>
     }
 

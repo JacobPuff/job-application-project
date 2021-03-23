@@ -193,7 +193,7 @@ function App() {
                 setShowAlert(false)
             })
             .catch((error)=>{
-                console.log(error)
+                console.error(error)
                 setShowAlert(true)
             })
         } else {
@@ -208,9 +208,9 @@ function App() {
                 <SearchBar style={{width:"30%", marginLeft:"auto", display:"inline-block"}} DoSearch={DoSearch}/>
             </div>
             <Table InitialData={initialData} InitialPageNum={selectedPage} TagDataTagCounts={tagDataTagCounts}
-                TagDataFileToTags={tagDataFileToTags}  ToggleTags={ToggleTags} IsVisible={showTable} SelectReport={SelectReport}/>
-            <Report IsVisible={showReport} ReportMetadata={selectedReportMetadata} 
-                TagDataTagCounts={tagDataTagCounts} TagDataFileToTags={tagDataFileToTags} BackToTable={BackToTable}/>
+                TagDataFileToTags={tagDataFileToTags} ToggleTags={ToggleTags} IsVisible={showTable} SelectReport={SelectReport}/>
+            <Report ReportMetadata={selectedReportMetadata}  TagDataTagCounts={tagDataTagCounts} TagDataFileToTags={tagDataFileToTags}
+                ToggleTags={ToggleTags} IsVisible={showReport} BackToTable={BackToTable}/>
             <AlertSnackbar Text={alertText} AlertType="danger" Show={showAlert}
                 HandleClose={()=>{setShowAlert(false)}}/>
         </div>

@@ -33,7 +33,7 @@ export function TagDropdown(props) {
         if (props.TagDataFileToTags[props.FileNum] != undefined) {
             for (const tag of props.TagDataFileToTags[props.FileNum]) {
                 listOfTagItems.push(<li key={count} onClick={(e)=>{HandleTagClick(e, tag)}}>
-                    <Tag Name={tag} Enabled={true}/>
+                    <Tag Tag={tag} Enabled={true}/>
                     </li>)
                 count++
             }
@@ -44,7 +44,7 @@ export function TagDropdown(props) {
                 continue
             }
             listOfTagItems.push(<li key={count} onClick={(e)=>{HandleTagClick(e, tag)}} style={{overflowWrap:"break-word"}}>
-                <Tag Name={tag} Enabled={false}/>
+                <Tag Tag={tag} Enabled={false}/>
                 </li>)
             count++
         }
