@@ -131,7 +131,12 @@ export function Report(props) {
         </div>
     }
 
+    const ScrollTop = () => {
+        window.scrollTo(0, 0);
+    }
+
     return <div style={{display:props.IsVisible?"unset":"none"}}>
+            
             <div style={{width:"70%", padding:"50px", display:"inline-block"}} className="border-end border-3 border-primary">
                 <button type="button" className="btn btn-primary" onClick={BackToTable}>Back</button>
                 <pre style={{padding: "10px", wordWrap:"break-word", textAlign:"center", whiteSpace:"pre-wrap"}}>
@@ -147,6 +152,9 @@ export function Report(props) {
                 <button style={{display:"inline-block", padding:"5px"}} type="button" className="btn btn-success" onClick={HandleButton}>+</button>
                 <hr className="dropdown-divider"/>
                 {GenerateTags()}
+                <button style={{position:"fixed", bottom: "15px", marginLeft:"5px"}} type="button" className="btn btn-primary" onClick={ScrollTop}>
+                    Scroll to Top
+                </button>
             </div>
         <AlertSnackbar Text="An error occured when getting the report. Please try again later." AlertType="danger" Show={showAlert}
             HandleClose={()=>{setShowAlert(false)}}/>

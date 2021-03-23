@@ -169,6 +169,7 @@ function App() {
         setTitle(metadata.title)
         setSelectedReportMetadata(metadata)
         setSelectedPage(page)
+        setShowAlert(false)
         setShowTable(false)
         setShowReport(true)
     }
@@ -177,6 +178,7 @@ function App() {
         history.pushState({data:initialData}, '', window.location.origin+"/?page="+selectedPage)
         setTitle(DEFAULT_APP_TITLE)
         setSelectedReportMetadata({})
+        setShowAlert(false)
         setShowTable(true)
         setShowReport(false)
     }
