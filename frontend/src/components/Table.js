@@ -81,7 +81,7 @@ export function Table(props) {
         return data.slice(start,end).map((d, i)=>{
             var fileData = HighlightText(d)
             return <tr key={d.fileNum}>
-                <th scope="row" onClick={()=>{SelectReport(d)}}>{d.fileNum}</th>
+                <th scope="row" onClick={()=>{SelectReport(d)}}>{fileData.fileNum}</th>
                 <td onClick={()=>{SelectReport(d)}}>{fileData.title}<p className="text-muted">{fileData.subtitle}</p></td>
                 <td onClick={()=>{SelectReport(d)}}>{fileData.author}</td>
                 <td onClick={()=>{SelectReport(d)}}>{fileData.preview}</td>

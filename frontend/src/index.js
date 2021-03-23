@@ -32,7 +32,7 @@ function App() {
 
     useEffect(()=>{
         HandleHistory()
-    },[initialData, showAlert])
+    },[initialData])
 
     const GetTableData = () => {
         axios.get('/api')
