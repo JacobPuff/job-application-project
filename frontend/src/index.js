@@ -21,6 +21,7 @@ function App() {
     const [tagDataTagCounts, setTagDataTagCounts] = useState({})
     const [tagDataFileToTags, setTagDataFileToTags] = useState({})
     const [selectedReportMetadata, setSelectedReportMetadata] = useState({})
+    const [lastSearch, setLastSearch] = useState("")
     const [alertText, setAlertText] = useState(TABLE_ERROR)
     
     useEffect(()=>{
@@ -31,13 +32,12 @@ function App() {
 
     useEffect(()=>{
         HandleHistory()
-    },[initialData])
+    },[initialData, showAlert])
 
     const GetTableData = () => {
         axios.get('/api')
         .then((response)=>{
             setInitialData(response.data)
-            setShowAlert(false)
         })
         .catch((error)=>{
             console.error(error)
@@ -51,7 +51,6 @@ function App() {
         .then((response)=>{
             setTagDataTagCounts(response.data.tagCounts)
             setTagDataFileToTags(response.data.fileToTags)
-            setShowAlert(false)
         })
         .catch((error)=>{
             console.error(error)
@@ -84,7 +83,6 @@ function App() {
                         fileNum:newTagDataFileToTags[fileNum]
                     }
                 })
-                setShowAlert(false)
             })
             .catch((error)=>{
                 console.error(error)
@@ -114,8 +112,6 @@ function App() {
                         fileNum:newTagDataFileToTags[fileNum]
                     }
                 })
-                // setTagDataUpdate(!tagDataUpdated)
-                setShowAlert(false)
             })
             .catch((error)=>{
                 console.error(error)
@@ -190,13 +186,14 @@ function App() {
             axios.post('/api',{"query":query})
             .then((response)=>{
                 setInitialData(response.data.results)
-                setShowAlert(false)
+                setLastSearch(query)
             })
             .catch((error)=>{
                 console.error(error)
                 setShowAlert(true)
             })
         } else {
+            setLastSearch("")
             GetTableData()
         }
     }
@@ -207,7 +204,7 @@ function App() {
                 <h4 style={{display:"inline-block", width:"70%"}}>{title}</h4>
                 <SearchBar style={{width:"30%", marginLeft:"auto", display:"inline-block"}} DoSearch={DoSearch}/>
             </div>
-            <Table InitialData={initialData} InitialPageNum={selectedPage} TagDataTagCounts={tagDataTagCounts}
+            <Table InitialData={initialData} InitialPageNum={selectedPage} TagDataTagCounts={tagDataTagCounts} SearchQuery={lastSearch}
                 TagDataFileToTags={tagDataFileToTags} ToggleTags={ToggleTags} IsVisible={showTable} SelectReport={SelectReport}/>
             <Report ReportMetadata={selectedReportMetadata}  TagDataTagCounts={tagDataTagCounts} TagDataFileToTags={tagDataFileToTags}
                 ToggleTags={ToggleTags} IsVisible={showReport} BackToTable={BackToTable}/>

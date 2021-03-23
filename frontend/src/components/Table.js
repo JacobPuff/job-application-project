@@ -39,23 +39,58 @@ export function Table(props) {
         props.ToggleTags(tagName, fileNum)
     }
 
+
+    const SplitAndJoinWithHighlightedText = (str) => {
+        var highlighted = <span style={{backgroundColor: "#f87d00"}}>{props.SearchQuery}</span>
+        return str.split(props.SearchQuery).reduce((acc, s) => {
+            if (acc === null) {
+                return [s]
+            }
+            return [...acc, highlighted, s]
+        })
+    }
+
+    const HighlightText = (data) => {
+        var fileData = Object.assign({}, data)
+        if (props.SearchQuery != "") {
+            if (fileData.fileNum.toString().indexOf(props.SearchQuery) != -1) {
+                fileData.fileNum = SplitAndJoinWithHighlightedText(fileData.fileNum.toString())
+            }
+            if (fileData.title.indexOf(props.SearchQuery) != -1) {
+                fileData.title = SplitAndJoinWithHighlightedText(fileData.title)
+            }
+            if (fileData.subtitle.indexOf(props.SearchQuery) != -1) {
+                fileData.subtitle = SplitAndJoinWithHighlightedText(fileData.subtitle)
+            }
+            if (fileData.author.indexOf(props.SearchQuery) != -1) {
+                fileData.author = SplitAndJoinWithHighlightedText(fileData.author)
+            }
+            if (fileData.preview.indexOf(props.SearchQuery) != -1) {
+                fileData.preview = SplitAndJoinWithHighlightedText(fileData.preview)
+            }
+        }
+        return fileData
+    }
+
     const GenerateTableRows = () => {
         var start = (page-1)*DEFAULT_MAX_PER_PAGE
         var end = start+DEFAULT_MAX_PER_PAGE
         if (data.length == 0) {
             return EMPTY_PAGE
         }
-        return data.slice(start,end).map((d, i)=>
-            <tr key={d.fileNum}>
+        return data.slice(start,end).map((d, i)=>{
+            var fileData = HighlightText(d)
+            return <tr key={d.fileNum}>
                 <th scope="row" onClick={()=>{SelectReport(d)}}>{d.fileNum}</th>
-                <td onClick={()=>{SelectReport(d)}}>{d.title}<p className="text-muted">{d.subtitle}</p></td>
-                <td onClick={()=>{SelectReport(d)}}>{d.author}</td>
-                <td onClick={()=>{SelectReport(d)}}>{d.preview}</td>
+                <td onClick={()=>{SelectReport(d)}}>{fileData.title}<p className="text-muted">{fileData.subtitle}</p></td>
+                <td onClick={()=>{SelectReport(d)}}>{fileData.author}</td>
+                <td onClick={()=>{SelectReport(d)}}>{fileData.preview}</td>
                 <td>
                     <TagDropdown FileNum={d.fileNum} TagDataTagCounts={props.TagDataTagCounts}
                         TagDataFileToTags={props.TagDataFileToTags} HandleTags={HandleTags}/>
                 </td>
-            </tr>)
+            </tr>
+        })
     }
 9 
     const GetPages = () => {

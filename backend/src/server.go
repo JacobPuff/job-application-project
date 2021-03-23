@@ -335,7 +335,7 @@ func SearchFiles(query string, listOfMetaData []structs.FileMetaData) (structs.S
 		
 		metadataIndex := FindIndexOfFileMetadataWithFileNum(newMetaData.FileNum, listOfMetaData)
 		if metadataIndex == -1 {
-			return results, fmt.Errorf("ERROR: Couldn't find index of files")
+			return results, fmt.Errorf("ERROR: Couldn't find index of file with FileNum %d.", newMetaData.FileNum)
 		}
 		existingMetaData := listOfMetaData[metadataIndex]
 		newMetaData.Title = existingMetaData.Title
@@ -406,7 +406,6 @@ func GenerateTextFilesAndMetadata(apiHandler *ApiHandler) []structs.FileMetaData
 		fileText := string(fileBytes)
 		
 		splitText := strings.SplitN(fileText, "***", 2)
-		fmt.Println(file.Name())
 		metaDataSection := strings.Split(splitText[0], "\r")
 
 		Text := splitText[0]
