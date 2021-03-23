@@ -1,5 +1,6 @@
 import React, {useState, useEffect} from 'react';
 import {AlertSnackbar} from './Alert'
+import { Tag } from './Tag';
 
 const axios = require('axios');
 
@@ -42,17 +43,57 @@ export function Report(props) {
         props.BackToTable()
     }
 
+    const GenerateTags = () => {
+        if (props.TagDataFileToTags == undefined || props.TagDataTagCounts == undefined){
+            return
+        }
+        var sortedTagsArray = []
+        var filesTags = props.TagDataFileToTags[props.ReportMetadata.fileNum] || []
+        console.log(props)
+        for (const tag in props.TagDataTagCounts) {
+            sortedTagsArray.push({
+                tag: tag,
+                count: props.TagDataTagCounts[tag],
+                enabled: filesTags.includes(tag),
+                shortcut: undefined})
+        }
+        sortedTagsArray.sort((a, b)=> {
+            if (a.count == b.count) {
+                return a.tag.localeCompare(b.tag)
+            }
+            return a.count < b.count ? 1:-1
+        })
 
-    return <div style={{display:props.IsVisible?"":"none"}}>
-        <div>
+        // Get top 10 most used. They will be displayed first.
+        var topTenTags = sortedTagsArray.splice(0,10)
+        topTenTags = topTenTags.map((t, i)=>{return {...t, tag: `(${(i+1)%10}) `+t.tag, shortcut:(i+1)%10}})
+        var enabledTags = sortedTagsArray.filter(t=>t.enabled)
+        var disabledTags = sortedTagsArray.filter(t=>!t.enabled)
+        return <div>
+            <h6>Shortcuts</h6>
+            {topTenTags.map((tag, i)=> <Tag key={i} Name={tag.tag} Enabled={tag.enabled}/>)}
+            <hr className="dropdown-divider"/>
+            <h6>Enabled</h6>
+            {enabledTags.map((tag, i)=> <Tag key={i} Name={tag.tag} Enabled={tag.enabled}/>)}
+            <hr className="dropdown-divider"/>
+            <h6>Disabled</h6>
+            {disabledTags.map((tag, i)=> <Tag key={i} Name={tag.tag} Enabled={tag.enabled}/>)}
+        </div>
+    }
+
+    return <div style={{display:props.IsVisible?"unset":"none"}}>
             <div style={{width:"70%", padding:"50px", display:"inline-block"}} className="border-end border-3 border-primary">
                 <button type="button" className="btn btn-primary" onClick={BackToTable}>Back</button>
                 <pre style={{padding: "10px", wordWrap:"break-word", textAlign:"center", whiteSpace:"pre-wrap"}}>
                     {reportText}
                 </pre>
             </div>
-            <div style={{width:"70px", height:"70px", display:"inline-block", verticalAlign:"top", margin:"10px"}}>Tags will go here</div>
-        </div>
+            <div className="border-start border-3 border-primary"
+            style={{marginLeft:"-3px", width:"30%", display:"inline-block", verticalAlign:"top", padding:"10px"}}>
+                <h4>Tags</h4>
+                <hr className="dropdown-divider"/>
+                {GenerateTags()}
+            </div>
         <AlertSnackbar Text="An error occured when getting the report. Please try again later." AlertType="danger" Show={showAlert}
             HandleClose={()=>{setShowAlert(false)}}/>
     </div>

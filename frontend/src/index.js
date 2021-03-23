@@ -37,7 +37,6 @@ function App() {
         axios.get('/api')
         .then((response)=>{
             setInitialData(response.data)
-            HandleHistory()
             setShowAlert(false)
         })
         .catch((error)=>{
@@ -133,6 +132,8 @@ function App() {
             tempInitialData = e.state.data
             setTempState = true
         }
+        GetTagData()
+
         setSelectedReportMetadata({})
         //Internet Explorer doens't support URLSearchParams.
         var params = new URLSearchParams(window.location.search);
@@ -143,7 +144,7 @@ function App() {
                 setSelectedReportMetadata(reportMetadata[0])
                 setTitle(reportMetadata[0].title)
             } else {
-                var fillerMetadata = {"fileNum": params.get("report")}
+                var fillerMetadata = {"fileNum": params.get("report"), "tags":[]}
                 setSelectedReportMetadata(fillerMetadata)
             }
             setShowTable(false)
@@ -195,6 +196,8 @@ function App() {
                 console.log(error)
                 setShowAlert(true)
             })
+        } else {
+            GetTableData()
         }
     }
 
